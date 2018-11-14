@@ -1,1 +1,1 @@
-include ':app', ':binzo-audio'
+include ':app', ':bz-audio', ':bz-util'
