@@ -54,13 +54,13 @@ public class SubtitleActivity extends AppCompatActivity implements Button.OnClic
                     Log.i(TAG, "MSG_TIMER_STOP");
                     startTime = 0;
                     removeMessages(MSG_TIMER_TICK);
-                    time.setText(DateTimeUtil.format(0, DateTimeUtil.HHmmss));
+                    time.setText(DateTimeUtil.format(0, DateTimeUtil.HHmmss, false));
                     break;
                 case MSG_TIMER_TICK:
                     Log.i(TAG, "MSG_TIMER_TICK");
                     sendEmptyMessageDelayed(MSG_TIMER_TICK, UPDATE_INTERVAL);
                     elapsedTime = SystemClock.elapsedRealtime() - startTime;
-                    time.setText(DateTimeUtil.format(elapsedTime, DateTimeUtil.HHmmss));
+                    time.setText(DateTimeUtil.format(elapsedTime, DateTimeUtil.HHmmss, false));
                     if (elapsedTime >= duration) {
                         sendEmptyMessage(MSG_TIMER_STOP);
                     }
@@ -103,7 +103,6 @@ public class SubtitleActivity extends AppCompatActivity implements Button.OnClic
         button2 = findViewById(R.id.button2);
         button2.setOnClickListener(this);
         time = findViewById(R.id.time);
-        time.setText(DateTimeUtil.format(DateTimeUtil.currentTimeMillis(), DateTimeUtil.HHmmss));
 
         try {
             TimedTextObject subtitle = new FormatSRT().parseFile("test",

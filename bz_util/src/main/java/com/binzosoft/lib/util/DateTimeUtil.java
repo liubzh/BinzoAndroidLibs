@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * Created by binzo on 2018/4/22.
@@ -17,61 +18,37 @@ public class DateTimeUtil {
     public static final String yyMMddHHmmss = "yyyy-MM-dd HH:mm:ss";
     public static final String yyyyMMdd = "yyyy-MM-dd";
 
-    public static String format(long timeMillis, String format) {
-        if (HHmm.equals(format)) {
-            timeMillis = timeMillis % (24 * 3600 * 1000);
-            int h = (int) (timeMillis / 3600000);
-            int m = (int) ((timeMillis / 60000) % 60);
-            StringBuffer sb = new StringBuffer();
-            if (h < 10) {
-                sb.append("0");
-            }
-            sb.append(h).append(":");
-            if (m < 10) {
-                sb.append("0");
-            }
-            sb.append(m);
-            return sb.toString();
-        } else if (HHmmss.equals(format)) {
-            timeMillis = timeMillis % (24 * 3600 * 1000);
-            int h = (int) (timeMillis / 3600000);
-            int m = (int) ((timeMillis / 60000) % 60);
-            int s = (int) ((timeMillis / 1000) % 60);
-            StringBuffer sb = new StringBuffer();
-            if (h < 10) {
-                sb.append("0");
-            }
-            sb.append(h).append(":");
-            if (m < 10) {
-                sb.append("0");
-            }
-            sb.append(m).append(":");
-            if (s < 10) {
-                sb.append("0");
-            }
-            sb.append(s);
-            return sb.toString();
-        } else {
-            Date date = new Date(timeMillis);
-            SimpleDateFormat formatter = new SimpleDateFormat(format);
-            String result = formatter.format(date);
-            return result;
-        }
-    }
-
-    public static String format(Date date, String format) {
+    /**
+     * @param timeMillis 毫秒级时间
+     * @param format     格式化字符串
+     * @param timeZone   是否考虑时区，以62000毫秒为例:
+     *                   timeZone 为 true：08:01:02
+     *                   timeZone 为 false：00:01:02
+     * @return           返回格式化后的字符串：00:01:02
+     */
+    public static String format(long timeMillis, String format, boolean timeZone) {
+        Date date = new Date(timeMillis);
         SimpleDateFormat formatter = new SimpleDateFormat(format);
-        String time = formatter.format(date);
-        return time;
+        if (!timeZone) {
+            formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+        }
+        return formatter.format(date);
     }
 
     /**
-     * 相应时区
-     * @return
+     * @param date      毫秒级时间
+     * @param format    格式化字符串
+     * @param timeZone  是否考虑时区，以62000毫秒为例:
+     *                  timeZone 为 true：08:01:02
+     *                  timeZone 为 false：00:01:02
+     * @return          返回格式化后的字符串：00:01:02
      */
-    public static long currentTimeMillis() {
-        Calendar c = Calendar.getInstance();
-        return c.getTimeInMillis();
+    public static String format(Date date, String format, boolean timeZone) {
+        SimpleDateFormat formatter = new SimpleDateFormat(format);
+        if (!timeZone) {
+            formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+        }
+        return formatter.format(date);
     }
 
     public static Date parseDate(String date, String format) throws ParseException {
