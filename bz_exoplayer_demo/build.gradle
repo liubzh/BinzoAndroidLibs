@@ -34,6 +34,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
+    implementation project(':bz_util')
     implementation project(':bz_exoplayer')
     implementation 'com.google.android.exoplayer:exoplayer:2.8.4'
     implementation 'com.google.android.exoplayer:exoplayer-core:2.8.4'
