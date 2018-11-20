@@ -1,1 +1,4 @@
-include ':app', ':bz_audio', ':bz_util', ':bz_exoplayer', ':bz_exoplayer_demo'
+include ':app',
+        ':bz_audio',
+        ':bz_util', ':bz_util_demo',
+        ':bz_exoplayer', ':bz_exoplayer_demo'
