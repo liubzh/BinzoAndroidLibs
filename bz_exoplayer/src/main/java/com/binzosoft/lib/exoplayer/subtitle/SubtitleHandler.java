@@ -3,14 +3,18 @@ package com.binzosoft.lib.exoplayer.subtitle;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Html;
 import android.util.Log;
 import android.widget.TextView;
 
 import com.google.android.exoplayer2.Player;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 public class SubtitleHandler extends Handler {
 
@@ -22,24 +26,30 @@ public class SubtitleHandler extends Handler {
 
     private Context mContext;
     private Player mPlayer;
-    private ParserSRTUtil parserSRTUtil;
     private TextView textView;
-    private boolean parseFinished;
+    private volatile boolean parseFinished;
+    private ArrayList<SubtitleInfo> subtitleList;
 
-    public SubtitleHandler(Context context, TextView textView, Player player) {
+    public SubtitleHandler(Context context) {
         this.mContext = context;
-        this.textView = textView;
-        this.mPlayer = player;
         parseFinished = false;
-        parserSRTUtil = ParserSRTUtil.getInstance();
     }
 
-    public void loadSRT(String srtPath) throws IOException {
-        loadSRT(new FileInputStream(srtPath));
+    public void bindPlayer(Player player) {
+        this.mPlayer = player;
     }
 
-    public void loadSRT(InputStream inputStream) {
-        new ParseThread(inputStream).start();
+    public void bindTextView(TextView textView) {
+        this.textView = textView;
+    }
+
+    public void loadSrt(String srtPath) throws IOException {
+        loadSrt(new FileInputStream(srtPath));
+    }
+
+    public void loadSrt(InputStream inputStream) {
+        parseFinished = false;
+        new ParseSrtThread(inputStream, "UTF-8").start();
     }
 
     @Override
@@ -62,7 +72,26 @@ public class SubtitleHandler extends Handler {
     }
 
     public void doUpdateOnce() {
-        parserSRTUtil.showSRT(mPlayer.getCurrentPosition(), textView);
+        if (subtitleList == null) {
+            return;
+        }
+        if (mPlayer == null) {
+            return;
+        }
+        long currentPosition = mPlayer.getCurrentPosition();
+        if (subtitleList.size() == 0) {
+            textView.setText("");
+        }
+
+        for (int i = 0; i < subtitleList.size(); i++) {
+            SubtitleInfo srtbean = subtitleList.get(i);
+            if (currentPosition > srtbean.getBeginTime() && currentPosition < srtbean.getEndTime()) {
+                textView.setText(Html.fromHtml(srtbean.getSrtBody()));
+                //System.out.println("subtile" + srtbean.getSrtBody());
+                return;
+            }
+        }
+        textView.setText("");
     }
 
     public void startUpdating() {
@@ -73,16 +102,89 @@ public class SubtitleHandler extends Handler {
         removeMessages(MSG_UPDATE_SUBTITLE);
     }
 
-    class ParseThread extends Thread {
+    public void destroy() {
+        parseFinished = true; // 结束解析src的线程
+    }
+
+    class ParseSrtThread extends Thread {
         private InputStream inputStream;
-        public ParseThread(InputStream inputStream) {
-            this.inputStream = inputStream;
+        private String charset;
+
+        public ParseSrtThread(InputStream inputStream) {
+            this(inputStream, "UTF-8");
         }
+
+        public ParseSrtThread(InputStream inputStream, String charset) {
+            this.inputStream = inputStream;
+            this.charset = charset;
+        }
+
         @Override
         public void run() {
             // 字幕。ExoPlayer本身可以配置字幕文件并显示。这里是单独实现的字幕逻辑。
-            parserSRTUtil.loadInitSRT(inputStream);
-            parseFinished = true;
+            StringBuffer sb;
+            BufferedReader br = null;
+            StringBuffer srtBody_1;
+            try {
+                subtitleList = new ArrayList();
+                br = new BufferedReader(new InputStreamReader(inputStream, charset));
+                String line;
+
+                sb = new StringBuffer();
+                srtBody_1 = new StringBuffer();
+                while (!parseFinished && (line = br.readLine()) != null) {
+                    if (!line.equals("")) {
+                        sb.append(line).append("@");
+                        continue;
+                    }
+
+                    String[] parseStrs = sb.toString().split("@");
+                    if (parseStrs.length < 3) {
+                        sb.delete(0, sb.length());
+                        continue;
+                    }
+                    SubtitleInfo srt = new SubtitleInfo();
+                    // 解析开始和结束时间
+                    String timeTotime = parseStrs[1];
+                    int begin_hour = Integer.parseInt(timeTotime.substring(0, 2));
+                    int begin_mintue = Integer.parseInt(timeTotime.substring(3, 5));
+                    int begin_scend = Integer.parseInt(timeTotime.substring(6, 8));
+                    int begin_milli = Integer.parseInt(timeTotime.substring(9, 12));
+                    int beginTime = (begin_hour * 3600 + begin_mintue * 60 + begin_scend) * 1000 + begin_milli;
+                    int end_hour = Integer.parseInt(timeTotime.substring(17, 19));
+                    int end_mintue = Integer.parseInt(timeTotime.substring(20, 22));
+                    int end_scend = Integer.parseInt(timeTotime.substring(23, 25));
+                    int end_milli = Integer.parseInt(timeTotime.substring(26, 29));
+                    int endTime = (end_hour * 3600 + end_mintue * 60 + end_scend) * 1000 + end_milli;
+
+                    for (int i = 2; i < parseStrs.length; i++) {
+                        if (i < parseStrs.length - 1) {
+                            srtBody_1.append(parseStrs[i] + "<br>");
+                        } else {
+                            srtBody_1.append(parseStrs[i]);
+                        }
+                    }
+
+                    srt.setBeginTime(beginTime);
+                    srt.setEndTime(endTime);
+                    srt.setSrtBody(srtBody_1.toString());
+                    subtitleList.add(srt);
+
+                    srtBody_1.delete(0, srtBody_1.length());
+                    sb.delete(0, sb.length());
+                }
+                Log.i(TAG, "subtitleList.size()=" + subtitleList.size());
+                parseFinished = true; //标记解析完成，可界面显示了
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    br.close();
+                    inputStream.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }

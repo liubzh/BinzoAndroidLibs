@@ -18,7 +18,7 @@ public class ParserSRTUtil {
 
     private final String TAG = "ParserSRTUtil";
 
-    public ArrayList<SubTitleInfo> srtList;
+    public ArrayList<SubtitleInfo> srtList;
     public static int lastEndTime;
     private static boolean isStart = true;
     private static String sutitlePath;
@@ -89,7 +89,7 @@ public class ParserSRTUtil {
         BufferedReader br = null;
         StringBuffer srtBody_1 = null;
         try {
-            srtList = new ArrayList<SubTitleInfo>();
+            srtList = new ArrayList<SubtitleInfo>();
             br = new BufferedReader(new InputStreamReader(inputStream, sutitleCharset));
             String line = null;
 
@@ -106,7 +106,7 @@ public class ParserSRTUtil {
                     sb.delete(0, sb.length());
                     continue;
                 }
-                SubTitleInfo srt = new SubTitleInfo();
+                SubtitleInfo srt = new SubtitleInfo();
                 // 解析开始和结束时间
                 String timeTotime = parseStrs[1];
                 int begin_hour = Integer.parseInt(timeTotime.substring(0, 2));
@@ -207,7 +207,7 @@ public class ParserSRTUtil {
         }
 
         /*for(int i=0;i<srtList.size();i++){
-            SubTitleInfo srtbean =srtList.get(i);
+            SubtitleInfo srtbean =srtList.get(i);
                 System.out.println("jiyongfeng:List:"+srtbean.getSrtBody());
         }*/
 
@@ -216,7 +216,7 @@ public class ParserSRTUtil {
         System.out.println("jiyongfeng:srtList:"+srtList.get(srtList.size()-1).getEndTime());
         System.out.println("jiyongfeng:srtList:"+srtList.get(srtList.size()-1).getSrtBody());*/
         for (int i = 0; i < srtList.size(); i++) {
-            SubTitleInfo srtbean = srtList.get(i);
+            SubtitleInfo srtbean = srtList.get(i);
             if (currentPosition > srtbean.getBeginTime() && currentPosition < srtbean.getEndTime()) {
                 tvSrt.setText(Html.fromHtml(srtbean.getSrtBody()));
                 //System.out.println("jiyongfeng:subtile"+srtbean.getSrtBody());
@@ -310,7 +310,7 @@ public class ParserSRTUtil {
                     sb.delete(0, sb.length());
                     continue;
                 }
-                SubTitleInfo srt = new SubTitleInfo();
+                SubtitleInfo srt = new SubtitleInfo();
                 String timeTotime = parseStrs[1];
                 int begin_hour = Integer.parseInt(timeTotime.substring(0, 2));
                 int begin_mintue = Integer.parseInt(timeTotime.substring(3, 5));

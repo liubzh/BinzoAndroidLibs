@@ -134,9 +134,11 @@ public class MainActivity extends AppCompatActivity {
         // 播放器事件监听
         player.addListener(eventListener);
 
-        subtitleHandler = new SubtitleHandler(this, subtitleTextView, player);
+        subtitleHandler = new SubtitleHandler(this);
+        subtitleHandler.bindPlayer(player);
+        subtitleHandler.bindTextView(subtitleTextView);
         try {
-            subtitleHandler.loadSRT(getAssets().open("f2.srt"));
+            subtitleHandler.loadSrt(getAssets().open("f2.srt"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -147,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "onDestroy()");
         subtitleHandler.stopUpdating();
         player.release();
+        subtitleHandler.destroy();
         super.onDestroy();
     }
 }

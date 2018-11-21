@@ -1,6 +1,6 @@
 package com.binzosoft.lib.exoplayer.subtitle;
 
-public class SubTitleInfo {
+public class SubtitleInfo {
     private int beginTime;
     private int endTime;
     private String srtBody;
