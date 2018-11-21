@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -80,20 +81,15 @@ public class ParserSRTUtil {
         }
     }
 
-    public boolean loadInitSRT(String path) {
-        Log.d(TAG, "loadInitSRT");
-        if (srtList != null) {
-            srtList.clear();
+    public boolean loadInitSRT(InputStream inputStream) {
+        if (sutitleCharset == null) {
+            sutitleCharset = "UTF-8";
         }
-        sutitlePath = path;
-        sutitleCharset = getCharset(sutitlePath);
-        InputStream inputStream = null;
         StringBuffer sb = null;
         BufferedReader br = null;
         StringBuffer srtBody_1 = null;
         try {
             srtList = new ArrayList<SubTitleInfo>();
-            inputStream = new FileInputStream(path);
             br = new BufferedReader(new InputStreamReader(inputStream, sutitleCharset));
             String line = null;
 
@@ -138,15 +134,16 @@ public class ParserSRTUtil {
                 srt.setEndTime(endTime);
                 srt.setSrtBody(srtBody_1.toString());
                 srtList.add(srt);
-                if (srtList.size() >= loopStepDefination) {
+                /*if (srtList.size() >= loopStepDefination) {
                     break;
-                }
+                }*/
                 srtBody_1.delete(0, srtBody_1.length());
                 sb.delete(0, sb.length());
             }
             if (srtList != null && srtList.size() > 0) {
                 lastEndTime = srtList.get(srtList.size() - 1).getEndTime();
             }
+            Log.i(TAG, "srtList.size()=" + srtList.size());
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -162,6 +159,16 @@ public class ParserSRTUtil {
             }
         }
         return false;
+    }
+
+    public boolean loadInitSRT(String path) throws IOException {
+        Log.d(TAG, "loadInitSRT");
+        if (srtList != null) {
+            srtList.clear();
+        }
+        sutitlePath = path;
+        sutitleCharset = getCharset(sutitlePath);
+        return loadInitSRT(new FileInputStream(path));
     }
 
     public void startParseSTRThread() {
@@ -190,11 +197,11 @@ public class ParserSRTUtil {
     }
 
 
-    public synchronized void showSRT(int position, TextView tvSrt) {
+    public synchronized void showSRT(long position, TextView tvSrt) {
         if (srtList == null) {
             return;
         }
-        int currentPosition = position;
+        long currentPosition = position;
         if (srtList.size() == 0) {
             tvSrt.setText("");
         }
