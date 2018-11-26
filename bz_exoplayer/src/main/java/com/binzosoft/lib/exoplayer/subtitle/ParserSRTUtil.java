@@ -19,7 +19,7 @@ public class ParserSRTUtil {
     private final String TAG = "ParserSRTUtil";
 
     public ArrayList<SubtitleInfo> srtList;
-    public static int lastEndTime;
+    public static long lastEndTime;
     private static boolean isStart = true;
     private static String sutitlePath;
     private static String sutitleCharset;

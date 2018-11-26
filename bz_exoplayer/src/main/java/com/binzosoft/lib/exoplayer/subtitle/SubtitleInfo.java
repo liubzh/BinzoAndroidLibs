@@ -1,11 +1,11 @@
 package com.binzosoft.lib.exoplayer.subtitle;
 
 public class SubtitleInfo {
-    private int beginTime;
-    private int endTime;
+    private long beginTime;
+    private long endTime;
     private String srtBody;
 
-    public int getBeginTime() {
+    public long getBeginTime() {
         return beginTime;
     }
 
@@ -13,11 +13,11 @@ public class SubtitleInfo {
         this.beginTime = beginTime;
     }
 
-    public int getEndTime() {
+    public long getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(int endTime) {
+    public void setEndTime(long endTime) {
         this.endTime = endTime;
     }
 

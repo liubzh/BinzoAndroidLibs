@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
 
     private final String TAG = getClass().getSimpleName();
 
-    private TextView subtitleTextView;
+    private TextView subtitleTextView1, subtitleTextView2;
     private SubtitleHandler subtitleHandler;
     private SimpleExoPlayer player;
 
@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onSeekProcessed() {
             Log.i(TAG, String.format("onSeekProcessed()"));
-            subtitleHandler.doUpdateOnce();
+            subtitleHandler.updateOnce();
             super.onSeekProcessed();
         }
     };
@@ -108,7 +108,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.player_activity);
-        subtitleTextView = findViewById(R.id.subtitle);
+        subtitleTextView1 = findViewById(R.id.subtitle1);
+        //subtitleTextView2 = findViewById(R.id.subtitle2);
 
         DefaultTrackSelector trackSelector = new DefaultTrackSelector();
          player =
@@ -120,7 +121,9 @@ public class MainActivity extends AppCompatActivity {
 
         //Uri uri = Uri.parse("/android_asset/test.mp4");
         //Uri uri = Uri.parse("/android_asset/test.m4a");
-        Uri uri = Uri.parse("/android_asset/f2.mp4");
+        //Uri uri = Uri.parse("/android_asset/f2.mp4");
+        //Uri uri = Uri.parse("/android_asset/test.mp3");
+        Uri uri = Uri.parse("file:///sdcard/Movies/LegallyBlonde.mp4");
 
         // Produces DataSource instances through which media data is loaded.
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(this,
@@ -136,9 +139,10 @@ public class MainActivity extends AppCompatActivity {
 
         subtitleHandler = new SubtitleHandler(this);
         subtitleHandler.bindPlayer(player);
-        subtitleHandler.bindTextView(subtitleTextView);
         try {
-            subtitleHandler.loadSrt(getAssets().open("f2.srt"));
+            //subtitleHandler.bindSrt(subtitleTextView, getAssets().open("f2.srt"));
+            subtitleHandler.bindSrt(subtitleTextView1, "/sdcard/Movies/LegallyBlonde1.En.srt");
+            //subtitleHandler.bindSrt(subtitleTextView2, "/sdcard/Movies/LegallyBlonde1.Chs.srt");
         } catch (IOException e) {
             e.printStackTrace();
         }
