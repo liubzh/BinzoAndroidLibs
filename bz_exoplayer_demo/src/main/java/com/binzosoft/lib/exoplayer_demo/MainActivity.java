@@ -1,10 +1,18 @@
 package com.binzosoft.lib.exoplayer_demo;
 
+import android.content.Intent;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.binzosoft.lib.exoplayer.subtitle.SubtitleHandler;
@@ -30,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
     private final String TAG = getClass().getSimpleName();
 
-    private TextView subtitleTextView1, subtitleTextView2;
+    private EditText subtitleTextView1, subtitleTextView2;
     private SubtitleHandler subtitleHandler;
     private SimpleExoPlayer player;
 
@@ -103,16 +111,16 @@ public class MainActivity extends AppCompatActivity {
     };
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.player_activity);
         subtitleTextView1 = findViewById(R.id.subtitle1);
+        setSelectionActionCallback2(subtitleTextView1);
         //subtitleTextView2 = findViewById(R.id.subtitle2);
 
         DefaultTrackSelector trackSelector = new DefaultTrackSelector();
-         player =
+        player =
                 ExoPlayerFactory.newSimpleInstance(this, trackSelector);
 
         PlayerView playerView = (PlayerView) findViewById(R.id.player_view);
@@ -145,6 +153,83 @@ public class MainActivity extends AppCompatActivity {
             //subtitleHandler.bindSrt(subtitleTextView2, "/sdcard/Movies/LegallyBlonde1.Chs.srt");
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void setSelectionActionCallback(TextView textView) {
+
+    }
+
+    private void setSelectionActionCallback2(final EditText editText) {
+        ActionMode.Callback2 callback2;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            callback2 = new ActionMode.Callback2() {
+                @Override
+                public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+                    /*
+                    MenuInflater menuInflater = actionMode.getMenuInflater();
+                    menuInflater.inflate(R.menu.selection_action_google_translate, menu);
+                    return true;//返回false则不会显示弹窗
+                    */
+                    return true;
+                }
+
+                @Override
+                public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+                    //return false; // 同时显示自定义和系统默认复制、粘贴菜单选项
+                    MenuInflater menuInflater = actionMode.getMenuInflater();
+                    menu.clear(); // 清楚系统默认复制、粘贴选项后，只显示自定义菜单选项
+                    menuInflater.inflate(R.menu.selection_action_google_translate, menu);
+                    return true;
+                }
+
+                @Override
+                public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+                    if (editText == null || !editText.hasSelection()) {
+                        return false;
+                    }
+                    String selection = editText.getText()
+                            .subSequence(editText.getSelectionStart(), editText.getSelectionEnd())
+                            .toString()
+                            .replace("<br>", " ")
+                            .replace("\n", " ");
+
+                    //根据item的ID处理点击事件
+                    switch (menuItem.getItemId()) {
+                        case R.id.GoogleTranslate:
+                            actionMode.finish();//收起操作菜单
+
+                            Intent intent = new Intent(Intent.ACTION_PROCESS_TEXT);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                            intent.setPackage("com.google.android.apps.translate");
+                            intent.setType("text/plain");
+
+                            intent.putExtra(Intent.EXTRA_PROCESS_TEXT, selection);
+                            //intent.putExtra(Intent.EXTRA_PROCESS_TEXT_READONLY, selection);
+
+                            startActivity(intent);
+                            break;
+
+                        case R.id.SelectAll:
+                            editText.selectAll();
+                            break;
+                    }
+                    return false;//返回true则系统的"复制"、"搜索"之类的item将无效，只有自定义item有响应
+                }
+
+                @Override
+                public void onDestroyActionMode(ActionMode actionMode) {
+
+                }
+
+                @Override
+                public void onGetContentRect(ActionMode mode, View view, Rect outRect) {
+                    //可选  用于改变弹出菜单的位置
+                    super.onGetContentRect(mode, view, outRect);
+                }
+            };
+            editText.setCustomSelectionActionModeCallback(callback2);
         }
     }
 

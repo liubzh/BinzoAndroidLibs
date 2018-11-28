@@ -24,13 +24,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
-    <TextView
+    <EditText
         android:id="@+id/subtitle1"
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:layout_gravity="bottom"
         android:layout_marginBottom="0dp"
         android:background="#CC000000"
+        android:editable="false"
         android:gravity="center"
         android:padding="22dp"
         android:text="Subtitle"

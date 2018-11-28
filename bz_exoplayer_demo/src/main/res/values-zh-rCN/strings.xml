@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">"Binzo's Video Player Demo"</string>
+    <string name="google_translate">翻译</string>
+    <string name="select_all">全选</string>
+</resources>
