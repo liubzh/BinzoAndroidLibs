@@ -1,9 +1,9 @@
 package com.binzosoft.lib.file_manager;
 
+import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -14,16 +14,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.binzosoft.lib.file_manager.listener.OnFileSelected;
 import com.binzosoft.lib.file_manager.listener.RcViewItemListener;
 import com.binzosoft.lib.file_manager.listener.RcViewOnClickListener;
 import com.binzosoft.lib.util.PermissionUtil;
 import com.binzosoft.lib.util.ToastUtil;
 
-
 import java.io.File;
 import java.util.Stack;
 
-public class FileManagerActivity extends AppCompatActivity {
+public class FileManagerActivity extends AppCompatActivity implements OnFileSelected {
 
     private final String TAG = "FileManagerActivity";
 
@@ -34,10 +34,22 @@ public class FileManagerActivity extends AppCompatActivity {
     private Stack<PathStackItem> pathStack = new Stack<>();
     private String currentPath;
 
+    private FileRestriction restriction;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate");
+
+        try {
+            restriction = getIntent().getExtras().getParcelable(FileRestriction.PARCELABLE_NAME);
+            if (restriction != null) {
+                currentPath = restriction.getRoot();
+                Log.i(TAG, "currentPath:" + currentPath);
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
 
         PermissionUtil.requestPermissions(this);
         setContentView(R.layout.fm_activity_file_manager);
@@ -46,9 +58,14 @@ public class FileManagerActivity extends AppCompatActivity {
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        currentPath = Environment.getExternalStorageDirectory().getPath();
+        if (TextUtils.isEmpty(currentPath)) {
+            currentPath = Environment.getExternalStorageDirectory().getPath();
+        }
         Log.i(TAG, "currentPath:" + currentPath);
         fileList = new File(currentPath).listFiles();
+        if (restriction != null) {
+            fileList = restriction.filter(currentPath);
+        }
         mAdapter = new FileListAdapter();
         mRecyclerView.setAdapter(mAdapter);
 
@@ -119,6 +136,9 @@ public class FileManagerActivity extends AppCompatActivity {
         pathStack.push(pathStackItem);
         Log.i(TAG, pathStack.toString());
         fileList = file.listFiles();
+        if (restriction != null) {
+            fileList = restriction.filter(path);
+        }
         mRecyclerView.setAdapter(new FileListAdapter());
         currentPath = path;
     }
@@ -135,6 +155,9 @@ public class FileManagerActivity extends AppCompatActivity {
             return;
         }
         fileList = file.listFiles();
+        if (restriction != null) {
+            fileList = restriction.filter(path);
+        }
         mRecyclerView.setAdapter(new FileListAdapter());
         mLayoutManager.scrollToPositionWithOffset(pathStackItem.getLastPosition(), pathStackItem.getLastOffset());
         currentPath = path;
@@ -157,6 +180,8 @@ public class FileManagerActivity extends AppCompatActivity {
                     //Log.i(TAG, "path: " + path);
                     if (file.exists() && file.isDirectory()) {
                         pathForward(file.getPath());
+                    } else {
+                        onSelected(path);
                     }
 
                 }
@@ -212,5 +237,11 @@ public class FileManagerActivity extends AppCompatActivity {
             }
         }
         return super.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    public void onSelected(String path) {
+        // 当选定一个文件，就会调用这个方法。
+        // 可继承这个Activity，然后重写这个方法
     }
 }

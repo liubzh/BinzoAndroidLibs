@@ -1,2 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.binzosoft.lib.video" />
+    package="com.binzosoft.lib.video" >
+
+    <application>
+        <activity android:name=".VideoActivity" />
+    </application>
+
+</manifest>

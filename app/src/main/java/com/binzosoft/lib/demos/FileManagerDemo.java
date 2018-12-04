@@ -2,15 +2,22 @@ package com.binzosoft.lib.demos;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
 import com.binzosoft.lib.file_manager.FileManagerActivity;
+import com.binzosoft.lib.file_manager.FileRestriction;
 import com.binzosoft.lib.util.PermissionUtil;
 
+import java.io.File;
+
 public class FileManagerDemo extends AppCompatActivity implements Button.OnClickListener {
+
+    private final String TAG = getClass().getSimpleName();
 
     private Button button1, button2;
 
@@ -30,7 +37,15 @@ public class FileManagerDemo extends AppCompatActivity implements Button.OnClick
         int id = v.getId();
         if (id == R.id.button1) {
             Intent intent = new Intent();
-            intent.setClass(this, FileManagerActivity.class);
+            intent.setClass(this, MyFileManagerActivity.class);
+            FileRestriction restriction = new FileRestriction();
+            String defaultRoot = Environment.getExternalStorageDirectory().getPath() + File.separator + "learn";
+            Log.i(TAG, "defaultRoot:" + defaultRoot);
+            restriction.setRoot(defaultRoot);
+            restriction.includeExtensions(new String[]{
+                    ".k.mp4"
+            });
+            intent.putExtra(FileRestriction.PARCELABLE_NAME, restriction);
             startActivity(intent);
         } else if (id == R.id.button2) {
 

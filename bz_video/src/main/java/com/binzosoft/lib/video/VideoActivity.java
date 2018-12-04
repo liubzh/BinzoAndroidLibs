@@ -3,8 +3,10 @@ package com.binzosoft.lib.video;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -14,82 +16,109 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.VideoView;
 
+import com.binzosoft.lib.util.PermissionUtil;
 import com.binzosoft.lib.video.subtitle.SubtitleHandler;
 
+import java.io.File;
 import java.io.IOException;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class VideoActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "VideoActivity";
 
     private VideoView videoView;
-    private TextView subtitleView;
+    private TextView subtitleTextView;
     private Button button1, button2;
     private SubtitleHandler subtitleHandler;
+
+    private File videoFile;
+    private File srtFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        subtitleView = findViewById(R.id.subtitle1);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            setSelectionActionCallback2(subtitleView);
+        try {
+            Uri uri = getIntent().getData();
+            String scheme = uri.getScheme();
+            if ("file".equals(scheme)) {
+                videoFile = new File(uri.getPath());
+            }
+            Log.i(TAG, "video path: " + videoFile.getPath());
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
 
+        if (videoFile == null) {
+            videoFile = new File("/sdcard/learn/Peppa Pig S01/Peppa Pig S01E001 - Muddy Puddles.k.mp4");
+        }
+        String srtPath = videoFile.getParent() + File.separator +
+                videoFile.getName().replace(".k.mp4", ".srt");
+        Log.i(TAG, "strPath: " + srtPath);
+        srtFile = new File(srtPath);
 
-        button1 = findViewById(R.id.Button1);
+        PermissionUtil.requestPermissions(this);
+        setContentView(R.layout.vd_activity_main);
+
+        button1 = findViewById(R.id.vd_button1);
         button1.setOnClickListener(this);
-        button2 = findViewById(R.id.Button2);
+        button2 = findViewById(R.id.vd_button2);
         button2.setOnClickListener(this);
 
-        videoView = findViewById(R.id.VideoView);
-        videoView.setOnClickListener(this);
-        videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                videoView.seekTo(0);
-                videoView.start();
+        videoView = findViewById(R.id.vd_videoView);
+        if (videoFile.exists()) {
+            videoView.setOnClickListener(this);
+            videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    videoView.seekTo(0);
+                    videoView.start();
+                }
+            });
+            videoView.setVideoPath(videoFile.getPath());
+
+            String title = videoFile.getName();
+            title = title.substring(0, title.lastIndexOf(".k.mp4"));
+            if (title.contains(" - ")) {
+                title = title.substring(title.indexOf(" - ") + 3);
             }
-        });
-        String filePath = "/sdcard/learn/Peppa Pig/Peppa Pig S01/Peppa Pig S01E001 - Muddy Puddles.k.mp4";
-        videoView.setVideoPath(filePath);
+            setTitle(title);
 
-        String title = filePath.substring(filePath.lastIndexOf("/"));
-        title = title.substring(0, title.lastIndexOf("."));
-        if (title.contains(" - ")) {
-            title = title.substring(title.indexOf(" - ") + 3);
+            //videoView.setVideoPath("/sdcard/Movies/LegallyBlonde.mp4");
+            //videoView.setMediaController(new MediaController(this));
+            videoView.start();
         }
-        setTitle(title);
 
-        //videoView.setVideoPath("/sdcard/Movies/LegallyBlonde.mp4");
-        //videoView.setMediaController(new MediaController(this));
-        videoView.start();
-
-        subtitleHandler = new SubtitleHandler(this);
-        subtitleHandler.bindPlayer(videoView);
-        //subtitleHandler.setPlayMode(SubtitleHandler.PlayMode.PAUSE_SINGLE_SENTENCE);
-        try {
-            subtitleHandler.bindSrt(SubtitleHandler.TYPE_MAIN, subtitleView,
-                    "/sdcard/learn/Peppa Pig/Peppa Pig S01/Peppa Pig S01E001 - Muddy Puddles.srt");
-                    //"/sdcard/Movies/LegallyBlonde1.En.srt");
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (srtFile.exists()) {
+            subtitleTextView = findViewById(R.id.vd_subtitle);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                setSelectionActionCallback2(subtitleTextView);
+            }
+            subtitleHandler = new SubtitleHandler(this);
+            subtitleHandler.bindPlayer(videoView);
+            //subtitleHandler.setPlayMode(SubtitleHandler.PlayMode.PAUSE_SINGLE_SENTENCE);
+            try {
+                subtitleHandler.bindSrt(SubtitleHandler.TYPE_MAIN, subtitleTextView,
+                        srtFile.getPath());
+                //"/sdcard/Movies/LegallyBlonde1.En.srt");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     @Override
     public void onClick(View v) {
         int id = v.getId();
-        if (id == R.id.VideoView) {
+        if (id == R.id.vd_videoView) {
             if (videoView.isPlaying()) {
                 subtitleHandler.pause();
             } else {
                 subtitleHandler.play();
             }
-        } else if (id == R.id.Button1) {
+        } else if (id == R.id.vd_button1) {
             subtitleHandler.previous();
-        } else if (id == R.id.Button2) {
+        } else if (id == R.id.vd_button2) {
             subtitleHandler.next();
         }
     }
@@ -103,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
                     /*
                     MenuInflater menuInflater = actionMode.getMenuInflater();
-                    menuInflater.inflate(R.menu.selection_action_google_translate, menu);
+                    menuInflater.inflate(R.menu.vd_selection_action_translate, menu);
                     return true;//返回false则不会显示弹窗
                     */
                     return true;
@@ -114,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     //return false; // 同时显示自定义和系统默认复制、粘贴菜单选项
                     MenuInflater menuInflater = actionMode.getMenuInflater();
                     menu.clear(); // 清除系统默认复制、粘贴选项后，只显示自定义菜单选项
-                    menuInflater.inflate(R.menu.selection_action_google_translate, menu);
+                    menuInflater.inflate(R.menu.vd_selection_action_translate, menu);
                     return true;
                 }
 
