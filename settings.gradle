@@ -1,5 +1,5 @@
-include ':app',
-        ':bz_video_player_demo',
+include ':app', ':bz_video',
+        ':bz_video_demo',
         //':bz_audio',
         ':bz_util', ':bz_util_demo',
         //':bz_exoplayer', ':bz_exoplayer_demo'

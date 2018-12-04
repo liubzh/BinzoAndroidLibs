@@ -7,15 +7,17 @@ import java.util.ArrayList;
 
 /**
  * 文件操作中，经常会遇到一些需求，如只显示某一类扩展名文件，PNG、MP4等
- * 可使用这个类进行限制/约束
+ * 可使用这个类进行限制/约束，INCLUDE/EXCLUDE 灵感来源于 grep 命令
  */
 public class FileRestriction implements Parcelable {
 
-    private ArrayList<String> INCLUDE_EXTENSIONS = new ArrayList<>(2);
-    private ArrayList<String> EXCLUDE_EXTENSIONS = new ArrayList<>(2);
+    private ArrayList<String> INCLUDE_EXTENSIONS = new ArrayList<>();
+    private ArrayList<String> EXCLUDE_EXTENSIONS = new ArrayList<>();
 
-    private ArrayList<String> INCLUDE_DIRECTORIES = new ArrayList<>(2);
-    private ArrayList<String> EXCLUDE_DIRECTORIES = new ArrayList<>(2);
+    private ArrayList<String> INCLUDE_DIRECTORIES = new ArrayList<>();
+    private ArrayList<String> EXCLUDE_DIRECTORIES = new ArrayList<>();
+
+    private String ROOT;
 
     public FileRestriction(Parcel parcel) {
         parcel.readStringList(INCLUDE_EXTENSIONS);
@@ -23,6 +25,10 @@ public class FileRestriction implements Parcelable {
 
         parcel.readStringList(INCLUDE_DIRECTORIES);
         parcel.readStringList(EXCLUDE_DIRECTORIES);
+    }
+
+    public void setRoot(String root) {
+        this.ROOT = root;
     }
 
     public void includeExtensions(String[] extensions) {

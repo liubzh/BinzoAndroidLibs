@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
         //Uri uri = Uri.parse("/android_asset/test.m4a");
         //Uri uri = Uri.parse("/android_asset/f2.mp4");
         //Uri uri = Uri.parse("/android_asset/test.mp3");
-        Uri uri = Uri.parse("file:///sdcard/Movies/LegallyBlonde.mp4");
+        Uri uri = Uri.parse("file:///sdcard/The Simpsons S01E01 - Simpsons Roasting on an Open Fire.mp4");
 
         // Produces DataSource instances through which media data is loaded.
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(this,
@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
         subtitleHandler.bindPlayer(player);
         try {
             //subtitleHandler.bindSrt(subtitleTextView, getAssets().open("f2.srt"));
-            subtitleHandler.bindSrt(subtitleTextView1, "/sdcard/Movies/LegallyBlonde1.En.srt");
+            subtitleHandler.bindSrt(subtitleTextView1, "/sdcard/The Simpsons S01E01 - Simpsons Roasting on an Open Fire-en.srt");
             //subtitleHandler.bindSrt(subtitleTextView2, "/sdcard/Movies/LegallyBlonde1.Chs.srt");
         } catch (IOException e) {
             e.printStackTrace();
