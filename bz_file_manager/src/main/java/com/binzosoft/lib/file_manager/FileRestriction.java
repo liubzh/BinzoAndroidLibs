@@ -6,6 +6,8 @@ import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 
 /**
@@ -154,10 +156,19 @@ public class FileRestriction implements Parcelable {
             }
         }
 
+        Collections.sort(arrayList, new SortByName());
         Log.i(TAG, "size:" + arrayList.size());
         File[] filtered = new File[arrayList.size()];
         arrayList.toArray(filtered);
         return filtered;
+    }
+
+    class SortByName implements Comparator {
+        public int compare(Object o1, Object o2) {
+            File f1 = (File) o1;
+            File f2 = (File) o2;
+            return f1.getName().compareTo(f2.getName());
+        }
     }
 
     @Override
