@@ -1,6 +1,7 @@
-include ':app', ':bz_video',
-        ':bz_video_demo',
+include ':app', ':bz_recyclerview',
+        ':bz_video',
+        ':bz_encrypt',
         //':bz_audio',
-        ':bz_util', ':bz_util_demo',
-        //':bz_exoplayer', ':bz_exoplayer_demo'
+        ':bz_util',
+        ':bz_util_demo',
         ':bz_file_manager'

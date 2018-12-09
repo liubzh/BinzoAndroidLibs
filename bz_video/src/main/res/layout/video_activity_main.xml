@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".VideoViewActivity">
+
+    <VideoView
+        android:id="@+id/video_videoView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/video_subtitle_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:gravity="center"
+        android:minHeight="100dp"
+        android:padding="22dp"
+        android:text="Subtitle"
+        android:textIsSelectable="true"
+        android:textSize="20sp"
+        app:layout_constraintTop_toBottomOf="@id/video_videoView" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorPrimary"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        app:layout_constraintBottom_toBottomOf="@id/video_subtitle_text" />
+
+    <Button
+        android:id="@+id/video_button1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Previous"
+        android:textAllCaps="false"
+        app:layout_constraintTop_toBottomOf="@id/video_subtitle_text" />
+
+    <Button
+        android:id="@+id/video_button2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Next"
+        android:textAllCaps="false"
+        app:layout_constraintTop_toBottomOf="@id/video_button1" />
+
+</android.support.constraint.ConstraintLayout>

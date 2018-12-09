@@ -1,13 +1,13 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
 
 
 
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
 
@@ -27,17 +27,8 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'com.android.support:appcompat-v7:27.0.0'
+    implementation 'com.android.support:appcompat-v7:28.0.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-
-    implementation 'com.google.android.exoplayer:exoplayer:2.8.4'
-    implementation 'com.google.android.exoplayer:exoplayer-core:2.8.4'
-    implementation 'com.google.android.exoplayer:exoplayer-dash:2.8.4'
-    implementation 'com.google.android.exoplayer:exoplayer-ui:2.8.4'
-
-    implementation project(':bz_util')
-    //implementation project(':bz_subtitle')
-    //implementation project(':bz_encrypt')
 }

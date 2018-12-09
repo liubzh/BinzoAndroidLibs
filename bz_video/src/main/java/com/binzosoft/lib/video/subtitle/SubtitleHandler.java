@@ -9,6 +9,8 @@ import android.util.Log;
 import android.widget.TextView;
 import android.widget.VideoView;
 
+import com.google.android.exoplayer2.ExoPlayer;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -27,14 +29,12 @@ public class SubtitleHandler extends Handler {
     public static final int MSG_SINGLE_SENTENCE_PAUSE = 1001;
     public static final int MSG_SINGLE_SENTENCE_LOOP = 1002;
 
-    public static final int UPDATE_INTERVAL = 300; // 刷新间隔，毫秒
+    public static final int UPDATE_INTERVAL = 200; // 刷新间隔，毫秒
 
     /**
      * 因为视频的关键帧问题，造成无法精确seek到指定位置，这里允许存在一定的误差
-     * 经过实验，关键帧设置为5的情况下，500毫秒相对好一些
-      */
-    //private final int SEEK_ROUGHT_TIME = 500;
-    //private final int MIN_SEEK_STEP = 1000; // 毫秒
+     * 经过实验，关键帧设置为5的情况下
+     */
 
     public enum PlayMode {
         NORMAL,
@@ -43,7 +43,7 @@ public class SubtitleHandler extends Handler {
     }
 
     private Context mContext;
-    private VideoView mPlayer;
+    private Player mPlayer;
     private ArrayList<SubtitleLoader> subtitleLoaders = new ArrayList<>();
     private PlayMode playMode;
 
@@ -51,8 +51,12 @@ public class SubtitleHandler extends Handler {
         this.mContext = context;
     }
 
-    public void bindPlayer(VideoView player) {
-        this.mPlayer = player;
+    public void bindVideoView(VideoView videoView) {
+        this.mPlayer = new Player(videoView);
+    }
+
+    public void bindExoPlayer(ExoPlayer exoPlayer) {
+        this.mPlayer = new Player(exoPlayer);
     }
 
     public void bindSrt(int type, TextView textView, String srtPath) throws IOException {
@@ -135,8 +139,7 @@ public class SubtitleHandler extends Handler {
     }
 
     public void previous() {
-        pause();
-        int position = mPlayer.getCurrentPosition();
+        long position = mPlayer.getCurrentPosition();
         for (SubtitleLoader loader : subtitleLoaders) {
             if (loader.isMainSubtitle()) {
                 SubtitleInfo previousCaption = loader.getPreviousSubtitle(position);
@@ -145,6 +148,7 @@ public class SubtitleHandler extends Handler {
                     int seekTo = previousCaption.getBeginTime();
                     //int roughTime = preciseTime / SEEK_ROUGHT_TIME * SEEK_ROUGHT_TIME;
                     Log.i(TAG, "seekTo:" + seekTo);
+                    pause();
                     mPlayer.seekTo(seekTo);
                     targetSubtitle(seekTo + 500);
                 }
@@ -153,17 +157,14 @@ public class SubtitleHandler extends Handler {
     }
 
     public void next() {
-        pause();
-        int position = mPlayer.getCurrentPosition();
+        long position = mPlayer.getCurrentPosition();
         for (SubtitleLoader loader : subtitleLoaders) {
             if (loader.isMainSubtitle()) {
                 SubtitleInfo nextCaption = loader.getNextSubtitle(position);
                 Log.i(TAG, "nextCaption:" + nextCaption);
                 if (nextCaption != null) {
                     int seekTo = nextCaption.getBeginTime();
-//                    if (seekTo - position < MIN_SEEK_STEP) {
-//                        seekTo = position + 500;
-//                    }
+                    pause();
                     mPlayer.seekTo(seekTo);
                     targetSubtitle(seekTo + 500);
                 }
@@ -171,7 +172,7 @@ public class SubtitleHandler extends Handler {
         }
     }
 
-    public void targetSubtitle(int position) {
+    public void targetSubtitle(long position) {
         for (SubtitleLoader loader : subtitleLoaders) {
             if (loader.isMainSubtitle()) {
                 loader.targetSubtitle(position);
@@ -180,7 +181,9 @@ public class SubtitleHandler extends Handler {
     }
 
     public void startToUpdate() {
-        sendEmptyMessage(MSG_UPDATE_SUBTITLE);
+        if (mPlayer != null) {
+            sendEmptyMessage(MSG_UPDATE_SUBTITLE);
+        }
     }
 
     public void stopUpdating() {
@@ -188,6 +191,7 @@ public class SubtitleHandler extends Handler {
     }
 
     public void destroy() {
+        stopUpdating();
         for (SubtitleLoader loader : subtitleLoaders) {
             loader.destroy();
         }
@@ -241,7 +245,7 @@ public class SubtitleHandler extends Handler {
             }
         }
 
-        public SubtitleInfo getPreviousSubtitle(int position) {
+        public SubtitleInfo getPreviousSubtitle(long position) {
             if (subtitleList == null || mPlayer == null) {
                 return null;
             }
@@ -264,7 +268,7 @@ public class SubtitleHandler extends Handler {
             return previous;
         }
 
-        public SubtitleInfo getNextSubtitle(int position) {
+        public SubtitleInfo getNextSubtitle(long position) {
             if (subtitleList == null || mPlayer == null) {
                 return null;
             }
@@ -339,10 +343,11 @@ public class SubtitleHandler extends Handler {
             if (subtitleList == null || mPlayer == null) {
                 return;
             }
-            currentPosition = mPlayer.getCurrentPosition();
             if (subtitleList.size() == 0) {
                 textView.setText("");
+                return;
             }
+            currentPosition = mPlayer.getCurrentPosition();
 
             /*
             if (subtitleIndex > 0) {
@@ -371,14 +376,14 @@ public class SubtitleHandler extends Handler {
             if (playMode == PlayMode.PAUSE_SINGLE_SENTENCE && !hasMessages(MSG_SINGLE_SENTENCE_PAUSE)) {
                 if (currentPosition >= info.getEndTime()) {
                     stopUpdating();
-                    mPlayer.pause();
+                    mVideoView.pause();
                     targetSubtitle(info.getEndTime());
                 }
             } else if (playMode == PlayMode.LOOP_SINGLE_SENTENCE) {
                 if (currentPosition >= info.getEndTime()) {
-                    mPlayer.seekTo(info.getBeginTime() & 1000);
+                    mVideoView.seekTo(info.getBeginTime() & 1000);
                     targetSubtitle(info.getBeginTime() & 1000);
-                    if (mPlayer.isPlaying()) {
+                    if (mVideoView.isPlaying()) {
                         startToUpdate();
                     }
                 }

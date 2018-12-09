@@ -27,15 +27,15 @@ import java.nio.charset.Charset;
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  * @author J. David Requejo
  *
  */
 public interface TimedTextFileFormat {
-	
+
 	/**
 	 * This methods receives the path to a file, parses it, and returns a TimedTextObject
-	 * 
+	 *
 	 * @param path String that contains the path to the file
 	 * @return TimedTextObject representing the parsed file
 	 * @throws IOException when having trouble reading the file from the given path

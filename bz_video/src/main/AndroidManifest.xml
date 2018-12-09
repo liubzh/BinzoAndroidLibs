@@ -2,7 +2,8 @@
     package="com.binzosoft.lib.video" >
 
     <application>
-        <activity android:name=".VideoActivity" />
+        <activity android:name=".VideoViewActivity" />
+        <activity android:name=".ExoPlayerActivity" />
     </application>
 
 </manifest>
