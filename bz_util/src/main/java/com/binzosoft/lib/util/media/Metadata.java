@@ -10,6 +10,8 @@ public class Metadata {
     private String duration;
     private String bitrate;
     private String date;
+    private String videoHeight;
+    private String videoWidth;
 
     public String getTitle() {
         return title;
@@ -67,6 +69,22 @@ public class Metadata {
         this.date = date;
     }
 
+    public String getVideoHeight() {
+        return videoHeight;
+    }
+
+    public void setVideoHeight(String videoHeight) {
+        this.videoHeight = videoHeight;
+    }
+
+    public String getVideoWidth() {
+        return videoWidth;
+    }
+
+    public void setVideoWidth(String videoWidth) {
+        this.videoWidth = videoWidth;
+    }
+
     @Override
     public String toString() {
         String template = "{title:%s;mime%s;artist:%s;duration:%s;bitrate:%s;date:%s}";
@@ -91,6 +109,10 @@ public class Metadata {
         metadata.setBitrate(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE));
         // 路径
         metadata.setDate(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE));
+
+        metadata.setVideoWidth(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
+        metadata.setVideoHeight(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
+
         return metadata;
     }
 }

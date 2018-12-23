@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.binzosoft.lib.file_manager.FileManagerActivity;
+import com.binzosoft.lib.util.media.Metadata;
 import com.binzosoft.lib.video.ExoPlayerActivity;
 import com.binzosoft.lib.video.VideoViewActivity;
 
@@ -29,6 +30,9 @@ public class MyFileManagerActivity extends FileManagerActivity {
     }
 
     private void startExoPlayerActivity(String path) {
+        Metadata metadata = Metadata.retrieve(path);
+        Log.i(TAG, "metadata:" + metadata);
+
         Intent intent = new Intent();
         intent.setClass(this, ExoPlayerActivity.class);
         intent.setData(Uri.fromFile(new File(path)));

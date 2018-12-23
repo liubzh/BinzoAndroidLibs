@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
@@ -14,6 +15,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.binzosoft.lib.util.PermissionUtil;
@@ -37,12 +39,14 @@ import com.google.android.exoplayer2.util.Util;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class ExoPlayerActivity extends AppCompatActivity implements Button.OnClickListener {
 
     private final String TAG = getClass().getSimpleName();
 
-    private TextView subtitleTextView;
+    private LinearLayout subtitlesContainer;
+    //private TextView subtitleTextView;
     private Button button1, button2;
     private SubtitleHandler subtitleHandler;
     private SimpleExoPlayer player;
@@ -74,10 +78,12 @@ public class ExoPlayerActivity extends AppCompatActivity implements Button.OnCli
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
             Log.i(TAG, String.format("onPlayerStateChanged(%b,%d)", playWhenReady, playbackState));
-            if (playWhenReady) {
-                subtitleHandler.startToUpdate();
-            } else {
-                subtitleHandler.stopUpdating();
+            if (subtitleHandler != null) {
+                if (playWhenReady) {
+                    subtitleHandler.startToUpdate();
+                } else {
+                    subtitleHandler.stopUpdating();
+                }
             }
             super.onPlayerStateChanged(playWhenReady, playbackState);
         }
@@ -159,6 +165,7 @@ public class ExoPlayerActivity extends AppCompatActivity implements Button.OnCli
         PermissionUtil.requestPermissions(this);
         setContentView(R.layout.video_exoplayer_activity);
 
+        subtitlesContainer = findViewById(R.id.video_subtitle_container);
         button1 = findViewById(R.id.video_button1);
         button1.setOnClickListener(this);
         button2 = findViewById(R.id.video_button2);
@@ -203,18 +210,20 @@ public class ExoPlayerActivity extends AppCompatActivity implements Button.OnCli
         // 播放器事件监听
         player.addListener(eventListener);
 
-        subtitleTextView = findViewById(R.id.video_subtitle_text);
+        /*
+        subtitleTextView = findViewById(R.id.video_subtitle_text_layout);
         setSelectionActionCallback2(subtitleTextView);
         //subtitleTextView2 = findViewById(R.id.subtitle2);
 
         String srtPath = videoFile.getParent() + File.separator +
                 videoFile.getName().replace(".k.mp4", ".srt");
+
         Log.i(TAG, "strPath: " + srtPath);
         srtFile = new File(srtPath);
 
 
         if (srtFile != null && srtFile.exists()) {
-            subtitleTextView = findViewById(R.id.video_subtitle_text);
+            subtitleTextView = findViewById(R.id.video_subtitle_text_layout);
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                 setSelectionActionCallback2(subtitleTextView);
             }
@@ -228,9 +237,54 @@ public class ExoPlayerActivity extends AppCompatActivity implements Button.OnCli
                 e.printStackTrace();
             }
         }
+        */
+        try {
+            searchSrt(videoFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         // 自动开始播放
         player.setPlayWhenReady(true);
+    }
+
+    private void searchSrt(File videoFile) throws IOException {
+        String dir = videoFile.getParentFile().getPath();
+        String fileName = videoFile.getName();
+        if (fileName.endsWith(".k.mp4")) {
+            fileName = fileName.substring(0, fileName.lastIndexOf(".k.mp4"));
+        } else if (fileName.endsWith(".mp4")) {
+            fileName = fileName.substring(0, fileName.lastIndexOf(".mp4"));
+        }
+        if (TextUtils.isEmpty(fileName)) {
+            return;
+        }
+        ArrayList<String> srtFiles = new ArrayList<>();
+        for (String file : videoFile.getParentFile().list()) {
+            if (file.startsWith(fileName) && file.endsWith(".srt")) {
+                srtFiles.add(file);
+            }
+        }
+        if (srtFiles.size() == 0) {
+            return;
+        }
+        subtitleHandler = new SubtitleHandler(this);
+        subtitleHandler.bindExoPlayer(player);
+        for (String srtFileName : srtFiles) {
+            String srtPath = dir + File.separator + srtFileName;
+                    Log.i(TAG, "srtPath:" + srtPath);
+            View layout = getLayoutInflater().inflate(R.layout.video_subtitle_text_layout, subtitlesContainer);
+            //subtitlesContainer.addView(layout);
+            TextView subtitleTextView = layout.findViewById(R.id.video_subtitle_text);
+            setSelectionActionCallback2(subtitleTextView);
+            if (srtFileName.equals(fileName + ".srt")) {
+                // 与视频文件名完全匹配的就是主字幕
+                subtitleHandler.bindSrt(SubtitleHandler.TYPE_MAIN, subtitleTextView, srtPath);
+            } else {
+                Log.i(TAG, "not equal");
+                subtitleHandler.bindSrt(SubtitleHandler.TYPE_SECONDARY, subtitleTextView, srtPath);
+            }
+        }
     }
 
     @Override
@@ -333,9 +387,13 @@ public class ExoPlayerActivity extends AppCompatActivity implements Button.OnCli
                 //subtitleHandler.play();
             }
         } else if (id == R.id.video_button1) {
-            subtitleHandler.previous();
+            if (subtitleHandler != null) {
+                subtitleHandler.previous();
+            }
         } else if (id == R.id.video_button2) {
-            subtitleHandler.next();
+            if (subtitleHandler != null) {
+                subtitleHandler.next();
+            }
         }
     }
 }
