@@ -29,4 +29,5 @@ dependencies {
     implementation project(':bz_util')
     implementation project(':bz_file_manager')
     implementation project(':bz_video')
+    implementation project(':bz_recyclerview')
 }

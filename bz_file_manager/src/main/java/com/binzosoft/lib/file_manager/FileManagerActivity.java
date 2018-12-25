@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -57,6 +58,7 @@ public class FileManagerActivity extends AppCompatActivity implements OnFileSele
         mRecyclerView = findViewById(R.id.fmRecyclerView);
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
+        setItemDecoration(mRecyclerView);
 
         if (TextUtils.isEmpty(currentPath)) {
             currentPath = Environment.getExternalStorageDirectory().getPath();
@@ -193,6 +195,12 @@ public class FileManagerActivity extends AppCompatActivity implements OnFileSele
                             String.format("onLongClick %s, position %d", tv.getText(), position));
                 }
             };
+
+    private void setItemDecoration(RecyclerView recyclerView) {
+        RecyclerView.ItemDecoration itemDecoration = new DividerItemDecoration(this,
+                DividerItemDecoration.VERTICAL);
+        recyclerView.addItemDecoration(itemDecoration);
+    }
 
     class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyViewHolder> {
 
