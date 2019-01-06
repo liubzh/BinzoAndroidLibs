@@ -1,4 +1,4 @@
-include ':app', ':bz_recyclerview',
+include ':app', ':bz_recyclerview', ':bz_caption',
         ':bz_video',
         ':bz_encrypt',
         //':bz_audio',
