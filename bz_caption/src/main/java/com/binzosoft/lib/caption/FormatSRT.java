@@ -7,8 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.regex.Pattern;
 
 
 /**
@@ -35,117 +34,98 @@ import java.util.Iterator;
  *
  * @author J. David Requejo
  */
-public class FormatSRT implements ParseInterface {
+public class FormatSRT implements SubtitleInterface {
+
+    private static final String PATTERN_INDEX = "[0-9]+";
+    private static final String PATTERN_TIME = "[0-9:,]{12}\\s-->\\s[0-9:,]{12}";
 
     @Override
-    public TimedTextObject parseInputStream(InputStream inputStream) {
+    public TimedTextObject parse(InputStream inputStream) {
         return null;
     }
 
     @Override
-    public TimedTextObject parseInputStream(InputStream inputStream, Charset isCharset) {
-        return null;
+    public TimedTextObject parse(InputStream inputStream, Charset isCharset) {
+        return parse(inputStream, Charset.defaultCharset());
     }
 
-    public TimedTextObject parseFile(String fileName) throws IOException {
-        return parseFile(fileName, Charset.defaultCharset());
+    @Override
+    public TimedTextObject parse(String fileName) throws IOException {
+        return parse(fileName, Charset.defaultCharset());
     }
 
-    public TimedTextObject parseFile(String path, Charset isCharset) throws IOException {
-
-        TimedTextObject tto = new TimedTextObject();
-        Caption caption = new Caption();
-        int captionNumber = 1;
-        boolean allGood;
-
+    @Override
+    public TimedTextObject parse(String path, Charset isCharset) throws IOException {
         //first lets load the file
         InputStreamReader in = new InputStreamReader(new FileInputStream(path), isCharset);
         BufferedReader br = new BufferedReader(in);
 
+        TimedTextObject tto = new TimedTextObject();
 
         //the file name is saved
         tto.fileName = path;
 
+        Caption caption = null;
+        String text = "";
+        String emptyLines = ""; //此变量为解析每条字幕内容的空行问题而设立。
+
         String line = br.readLine();
         line = line.replace("\uFEFF", ""); //remove BOM character
-        int lineCounter = 0;
         try {
-            while (line != null) {
+            do {
                 line = line.trim();
-                lineCounter++;
-                //if its a blank line, ignore it, otherwise...
-                if (!line.isEmpty()) {
-                    allGood = false;
-                    //the first thing should be an increasing number
-                    try {
-                        int num = Integer.parseInt(line);
-                        if (num != captionNumber)
-                            throw new Exception();
-                        else {
-                            captionNumber++;
-                            allGood = true;
-                        }
-                    } catch (Exception e) {
-                        tto.warnings += captionNumber + " expected at line " + lineCounter;
-                        tto.warnings += "\n skipping to next line\n\n";
-                    }
-                    if (allGood) {
-                        //we go to next line, here the begin and end time should be found
-                        try {
-                            lineCounter++;
-                            line = br.readLine().trim();
-                            String start = line.substring(0, 12);
-                            String end = line.substring(line.length() - 12, line.length());
-                            long time = TimeUtil.valueOf(TimeUtil.FORMAT_HH_MM_SS_MMM, start);
-                            caption.start = time;
-                            time = TimeUtil.valueOf(TimeUtil.FORMAT_HH_MM_SS_MMM, end);
-                            caption.end = time;
-                        } catch (Exception e) {
-                            tto.warnings += "incorrect time format at line " + lineCounter;
-                            allGood = false;
-                        }
-                    }
-                    if (allGood) {
-                        //we go to next line where the caption text starts
-                        lineCounter++;
-                        line = br.readLine().trim();
-                        String text = "";
-                        while (!line.isEmpty()) {
-                            text += line + "<br />";
-                            line = br.readLine().trim();
-                            lineCounter++;
-                        }
-                        caption.content = text;
-                        int key = (int) caption.start;
-                        //in case the key is already there, we increase it by a millisecond, since no duplicates are allowed
-                        while (tto.captions.containsKey(key)) key++;
-                        if (key != caption.start)
-                            tto.warnings += "caption with same start time found...\n\n";
-                        //we add the caption.
-                        tto.captions.put(key, caption);
-                    }
-                    //we go to next blank
-                    while (!line.isEmpty()) {
-                        line = br.readLine().trim();
-                        lineCounter++;
+                if (Pattern.matches(PATTERN_INDEX, line)) {
+                    if (caption != null) {
+                        caption.setContent(text);
+                        tto.addCaption(caption);
                     }
                     caption = new Caption();
+                    text = "";
+                    emptyLines = "";
+                } else if (Pattern.matches(PATTERN_TIME, line)) {
+                    String startTime = line.substring(0, 12);
+                    String endTime = line.substring(line.length() - 12, line.length());
+                    long time = TimeUtil.valueOf(TimeUtil.FORMAT_HH_MM_SS_MMM, startTime);
+                    caption.setStart(time);
+                    time = TimeUtil.valueOf(TimeUtil.FORMAT_HH_MM_SS_MMM, endTime);
+                    caption.setEnd(time);
+                } else if (line.isEmpty()) {
+                    emptyLines = emptyLines + "<br>"; //多行以 HTML 换行标签分隔
+                } else {
+                    if (null == text || text.isEmpty()) {
+                        text = line;
+                    } else {
+                        text = text + "<br>" + emptyLines + line;
+                        emptyLines = "";
+                    }
                 }
-                line = br.readLine();
+            } while ((line = br.readLine()) != null);
+            if (caption != null) {
+                // 将最后一条字幕添加到列表
+                caption.setContent(text);
+                tto.addCaption(caption);
             }
 
+            tto.sortCaptions();
         } catch (NullPointerException e) {
             tto.warnings += "unexpected end of file, maybe last caption is not complete.\n\n";
         } finally {
-            //we close the reader
-            in.close();
+            try {
+                br.close();
+            } catch (Exception e) {
+            }
+            try {
+                //we close the reader
+                in.close();
+            } catch (Exception e) {
+            }
         }
 
         tto.built = true;
         return tto;
     }
 
-
+    @Override
     public String[] toFile(TimedTextObject tto) {
 
         //first we check if the TimedTextObject had been built, otherwise...
@@ -157,30 +137,30 @@ public class FormatSRT implements ParseInterface {
         //the minimum size of the file is 4*number of captions, so we'll take some extra space.
         ArrayList<String> file = new ArrayList<>(5 * tto.captions.size());
         //we iterate over our captions collection, they are ordered since they come from a TreeMap
-        Collection<Caption> c = tto.captions.values();
-        Iterator<Caption> itr = c.iterator();
+//        Collection<Caption> c = tto.captions.();
+//        Iterator<Caption> itr = Collections;
         int captionNumber = 1;
 
-        while (itr.hasNext()) {
+        for (Caption caption : tto.captions) {
             //new caption
-            Caption current = itr.next();
+            //Caption current = itr.next();
             //number is written
             file.add(index++, Integer.toString(captionNumber++));
             //we check for offset value:
             if (tto.offset != 0) {
-                current.start += tto.offset;
-                current.end += tto.offset;
+                caption.start += tto.offset;
+                caption.end += tto.offset;
             }
             //time is written
-            file.add(index++, TimeUtil.format(TimeUtil.FORMAT_HH_MM_SS_MMM, current.start) +
-                    " --> " + TimeUtil.format(TimeUtil.FORMAT_HH_MM_SS_MMM, current.end));
+            file.add(index++, TimeUtil.format(TimeUtil.FORMAT_HH_MM_SS_MMM, caption.start) +
+                    " --> " + TimeUtil.format(TimeUtil.FORMAT_HH_MM_SS_MMM, caption.end));
             //offset is undone
             if (tto.offset != 0) {
-                current.start -= tto.offset;
-                current.end -= tto.offset;
+                caption.start -= tto.offset;
+                caption.end -= tto.offset;
             }
             //text is added
-            String[] lines = cleanTextForSRT(current);
+            String[] lines = cleanTextForSRT(caption);
             int i = 0;
             while (i < lines.length)
                 file.add(index++, "" + lines[i++]);
@@ -195,6 +175,10 @@ public class FormatSRT implements ParseInterface {
         return toReturn;
     }
 
+    @Override
+    public Caption getCaption(long time) {
+        return null;
+    }
 
     /* PRIVATE METHODS */
 
@@ -205,7 +189,7 @@ public class FormatSRT implements ParseInterface {
         String[] lines;
         String text = current.content;
         //add line breaks
-        lines = text.split("<br />");
+        lines = text.split("<br>");
         //clean XML
         for (int i = 0; i < lines.length; i++) {
             //this will destroy all remaining XML tags

@@ -20,7 +20,7 @@ public class TimeUtil {
                 msecond = msecond + "0";
             }
             ms = Integer.parseInt(msecond);
-            System.out.println(String.format("%d:%d:%d,%d", h, m, s, ms));
+            //System.out.println(String.format("%d:%d:%d,%d", h, m, s, ms));
             return ms + s * 1000 + m * 60000 + h * 3600000;
         }
         return -1;

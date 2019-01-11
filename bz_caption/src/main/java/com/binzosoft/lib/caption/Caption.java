@@ -9,7 +9,7 @@ public class Caption {
 
     @Override
     public String toString() {
-        return String.format("Caption{%s->%s, %s}", start, end, content);
+        return String.format("Caption { %s->%s: %s }", start, end, content);
     }
 
     public long getStart() {
