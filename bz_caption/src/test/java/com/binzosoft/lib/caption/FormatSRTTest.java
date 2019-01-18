@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 public class FormatSRTTest {
 
@@ -17,7 +17,7 @@ public class FormatSRTTest {
             System.out.println(tto.warnings);
         } catch (IOException e) {
             e.printStackTrace();
-            assertFalse(false);
+            assertTrue(false);
         }
         for (Caption caption : tto.captions) {
             System.out.println(caption.toString());

@@ -1,5 +1,6 @@
 package com.binzosoft.lib.caption;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -53,8 +54,8 @@ public class TimedTextObject {
 	 * 
 	 * @return an array of strings where each String represents a line
 	 */
-	public String[] toSRT(){
-		return new FormatSRT().toFile(this);
+	public void toSRT(String filePath) throws IOException {
+		new FormatSRT().toFile(this, filePath);
 	}
 
 	public void addCaption(Caption caption) {

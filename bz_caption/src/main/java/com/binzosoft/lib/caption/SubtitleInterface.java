@@ -36,35 +36,28 @@ public interface SubtitleInterface {
 	/**
 	 * This methods receives the path to a file, parses it, and returns a TimedTextObject
 	 *
-	 * @param path String that contains the path to the file
+	 * @param filePath String that contains the path to the file
 	 * @return TimedTextObject representing the parsed file
 	 * @throws IOException when having trouble reading the file from the given path
 	 */
-	TimedTextObject parse(String path) throws IOException, FatalParsingException;
-
-
-	TimedTextObject parse(InputStream inputStream) throws IOException, FatalParsingException;
+	TimedTextObject parse(String filePath) throws IOException, FatalParsingException;
 
 	/**
 	 * This methods receives the path to a file, parses it, and returns a TimedTextObject
-	 * @param path String that contains the path to the file
+	 * @param filePath String that contains the path to the file
 	 * @param isCharset the Charset to use when reading the InputStream
 	 * @return TimedTextObject representing the parsed file
 	 * @throws IOException when having trouble reading the file from the given path
 	 */
-	TimedTextObject parse(String path, Charset isCharset) throws IOException, FatalParsingException;
-
-	TimedTextObject parse(InputStream inputStream, Charset isCharset) throws IOException, FatalParsingException;
+	TimedTextObject parse(String filePath, Charset isCharset) throws IOException, FatalParsingException;
 
 	/**
 	 * This method transforms a given TimedTextObject into a formated subtitle file
 	 * 
 	 * @param tto the object to transform into a file
-	 * @return NULL if the given TimedTextObject has not been built first,
-	 * 		or String[] where each String is at least a line, if size is 2, then the file has at least two lines.
-	 * 		or byte[] in case the file is a binary (as is the case of STL format) 
+	 * @param filePath file path you want to save
 	 */
-	Object toFile(TimedTextObject tto);
+	void toFile(TimedTextObject tto, String filePath) throws IOException;
 
 	Caption getCaption(long time);
 
