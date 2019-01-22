@@ -43,6 +43,10 @@ public class TimedTextObject {
 
 		warnings = "List of non fatal errors produced during parsing:\n\n";
 	}
+
+	public ArrayList<Caption> getCaptions() {
+		return captions;
+	}
 	
 	
 	/*
@@ -58,10 +62,14 @@ public class TimedTextObject {
 		new FormatSRT().toFile(this, filePath);
 	}
 
+    public void toLRC(String filePath) throws IOException {
+        new FormatLRC().toFile(this, filePath);
+    }
+
 	public void addCaption(Caption caption) {
 		if (caption == null) {
 			warnings += "null caption is found.\n\n";
-		} else if (caption.start >= caption.end) {
+		} else if (caption.getStart() >= caption.getEnd()) {
 			warnings += String.format("end-time is lesser than or equal to start-time:\n%s\n\n",
                     caption.toString());
 		}
@@ -75,9 +83,9 @@ public class TimedTextObject {
         Collections.sort(captions, new Comparator<Caption>() {
             @Override
             public int compare(Caption caption1, Caption caption2) {
-                if (caption1.start > caption2.start) {
+                if (caption1.getStart() > caption2.getStart()) {
                     return 1;
-                } else if (caption1.start < caption2.start) {
+                } else if (caption1.getStart() < caption2.getStart()) {
                     return -1;
                 }
                 return 0;

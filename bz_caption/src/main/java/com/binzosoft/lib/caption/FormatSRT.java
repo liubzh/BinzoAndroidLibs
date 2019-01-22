@@ -105,15 +105,19 @@ public class FormatSRT implements SubtitleInterface {
 
             int index = 1;
 
-            for (Caption caption : tto.captions) {
+            for (int i = 0; i < tto.captions.size(); i++) {
+                if (i != 0) {
+                    // 条目之间的换行间隔
+                    writer.write("\n\n");
+                }
+                Caption caption = tto.captions.get(i);
                 writer.write(String.valueOf(index));
                 writer.write("\n");
-                String startTime = TimeUtil.format(TimeUtil.FORMAT_HH_MM_SS_MMM, caption.start);
-                String endTime = TimeUtil.format(TimeUtil.FORMAT_HH_MM_SS_MMM, caption.end);
+                String startTime = TimeUtil.format(TimeUtil.FORMAT_HH_MM_SS_MMM, caption.getStart());
+                String endTime = TimeUtil.format(TimeUtil.FORMAT_HH_MM_SS_MMM, caption.getEnd());
                 writer.write(String.format("%s --> %s", startTime, endTime));
                 writer.write("\n");
                 writer.write(caption.content.replace("<br>", "\n"));
-                writer.write("\n\n");
                 index++;
             }
         } catch (IOException e) {

@@ -2,7 +2,8 @@ package com.binzosoft.lib.caption;
 
 public class TimeUtil {
 
-    public static final String FORMAT_HH_MM_SS_MMM = "hh:mm:ss,mmm";
+    public static final String FORMAT_HH_MM_SS_MMM = "hh:mm:ss,mmm"; // SRT
+    public static final String FORMAT_MM_SS_MM = "mm:ss.mm"; // LRC
 
     /**
      * @param format 指定解析时间的格式
@@ -11,6 +12,7 @@ public class TimeUtil {
      */
     public static long valueOf(String format, String formattedTime) {
         if (FORMAT_HH_MM_SS_MMM.equals(format)) {
+            // SRT文件使用这个时间格式
             int h, m, s, ms;
             h = Integer.parseInt(formattedTime.substring(0, 2));
             m = Integer.parseInt(formattedTime.substring(3, 5));
@@ -22,6 +24,20 @@ public class TimeUtil {
             ms = Integer.parseInt(msecond);
             //System.out.println(String.format("%d:%d:%d,%d", h, m, s, ms));
             return ms + s * 1000 + m * 60000 + h * 3600000;
+        } else if (FORMAT_MM_SS_MM.equals(format)) {
+            // LRC文件使用这个时间格式
+            int m, s, ms;
+            int colonIndex = formattedTime.indexOf(":");
+            int dotIndex = formattedTime.lastIndexOf(".");
+            m = Integer.parseInt(formattedTime.substring(0, colonIndex - 1));
+            s = Integer.parseInt(formattedTime.substring(colonIndex + 1, dotIndex));
+            String msecond = formattedTime.substring(dotIndex + 1);
+            if (msecond.length() == 2) {
+                msecond = msecond + "0";
+            }
+            ms = Integer.parseInt(msecond);
+            //System.out.println(String.format("%d:%d.%d", m, s, ms));
+            return ms + s * 1000 + m * 60000;
         }
         return -1;
     }
@@ -38,6 +54,13 @@ public class TimeUtil {
             s = (int) (mseconds / 1000 % 60);
             ms = (int) (mseconds % 1000);
             return String.format("%02d:%02d:%02d,%03d", h, m, s, ms);
+        } else if (format.equals(FORMAT_MM_SS_MM)) {
+            // this type of format: 01:02.22 (used in .LRC)
+            int m, s, ms;
+            m = (int) (mseconds / 60000 % 60);
+            s = (int) (mseconds / 1000 % 60);
+            ms = (int) (mseconds % 1000 / 10);
+            return String.format("%02d:%02d.%02d", m, s, ms);
         } else if (format.equalsIgnoreCase("h:mm:ss.cs")) {
             // this type of format:  1:02:22.51 (used in .ASS/.SSA)
             int h, m, s, cs;

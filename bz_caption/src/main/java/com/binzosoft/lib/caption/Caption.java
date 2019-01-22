@@ -2,8 +2,8 @@ package com.binzosoft.lib.caption;
 
 public class Caption {
 
-    public long start;
-    public long end;
+    private long start;
+    private long end;
 
     public String content = "";
 

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 public class FormatLRC implements SubtitleInterface {
@@ -30,8 +31,7 @@ public class FormatLRC implements SubtitleInterface {
         //the file name is saved
         tto.fileName = filePath;
 
-        Caption captionLast = null;
-        Caption caption = null;
+        Caption caption;
         String text = "";
         String emptyLines = ""; //此变量为解析每条字幕内容的空行问题而设立。
 
@@ -42,51 +42,55 @@ public class FormatLRC implements SubtitleInterface {
                 line = line.trim();
                 if (Pattern.matches(PATTERN_TIME, line)) {
                     String time = line.substring(1, 9);
-                    System.out.println(time);
-                    break;
-                    /*
+                    //System.out.println(time);
                     if (line.length() > 10) {
                         // [00:04.37]词：琼瑶
                         // 字符个数大于10，说明有内容
-                    }
-                    captionLast = caption;
-                    if (caption != null) {
-                        caption.setContent(text);
-                        tto.addCaption(caption);
+                        text = line.substring(10);
+                    } else {
+                        text = "";
                     }
                     caption = new Caption();
+                    caption.setContent(text);
+                    long startTime = TimeUtil.valueOf(TimeUtil.FORMAT_MM_SS_MM, time);
+                    long endTime = startTime + 1; //暂时设定为假的结束时间，解析完成之后，进行真实结束时间的设定
+                    caption.setStart(startTime);
+                    caption.setEnd(endTime);
+                    tto.addCaption(caption);
                     text = "";
                     emptyLines = "";
-                    */
+                } else if (line.startsWith("[")) {
+                    // [ti:] [ar:] [al:] 等标签暂时忽略
                 } else if (line.isEmpty()) {
                     emptyLines = emptyLines + "<br>"; //多行以 HTML 换行标签分隔
                 } else {
-//                    if (null == text || text.isEmpty()) {
-//                        text = line;
-//                    } else {
-//                        text = text + "<br>" + emptyLines + line;
-//                        emptyLines = "";
-//                    }
+                    if (null == text || text.isEmpty()) {
+                        text = line;
+                    } else {
+                        text = text + "<br>" + emptyLines + line;
+                        emptyLines = "";
+                    }
                 }
             } while ((line = br.readLine()) != null);
-            if (caption != null) {
-                // 将最后一条字幕添加到列表
-                caption.setContent(text);
-                tto.addCaption(caption);
-            }
+            ArrayList<Caption> captions = tto.getCaptions();
 
             tto.sortCaptions(); //根据时间进行排序
+            for (int i = 0; i < captions.size(); i++) {
+                Caption c = captions.get(i);
+                if (i == captions.size() - 1) {
+                    // 最后一条
+                    c.setEnd(c.getStart() + 300000); // 时长设置为5分钟
+                } else {
+                    long end = captions.get(i + 1).getStart() - 1;
+                    c.setEnd(end);
+                }
+            }
             tto.built = true;
         } catch (NullPointerException e) {
             tto.warnings += "unexpected end of file, maybe last caption is not complete.\n\n";
         } finally {
             try {
                 br.close();
-            } catch (Exception e) {
-            }
-            try {
-                //we close the reader
-                in.close();
             } catch (Exception e) {
             }
         }
@@ -106,18 +110,15 @@ public class FormatLRC implements SubtitleInterface {
             writer = new OutputStreamWriter(
                     new FileOutputStream(filePath), "utf-8");
 
-            int index = 1;
-
-            for (Caption caption : tto.captions) {
-                writer.write(String.valueOf(index));
-                writer.write("\n");
-                String startTime = TimeUtil.format(TimeUtil.FORMAT_HH_MM_SS_MMM, caption.start);
-                String endTime = TimeUtil.format(TimeUtil.FORMAT_HH_MM_SS_MMM, caption.end);
-                writer.write(String.format("%s --> %s", startTime, endTime));
-                writer.write("\n");
-                writer.write(caption.content.replace("<br>", "\n"));
-                writer.write("\n\n");
-                index++;
+            for (int i = 0; i < tto.captions.size(); i++) {
+                Caption caption = tto.captions.get(i);
+                if (i != 0) {
+                    // 条目之间的换行
+                    writer.write("\n");
+                }
+                String startTime = TimeUtil.format(TimeUtil.FORMAT_MM_SS_MM, caption.getStart());
+                writer.write(String.format("[%s]", startTime));
+                writer.write(caption.content);
             }
         } catch (IOException e) {
             throw e;

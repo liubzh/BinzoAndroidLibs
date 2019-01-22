@@ -25,10 +25,14 @@ public class FormatLRCTest {
     @Test
     public void parseFile() {
         FormatLRC formatter = new FormatLRC();
-        TimedTextObject tto = null;
+        TimedTextObject tto;
         try {
             tto = formatter.parse("./src/test/assets/l2.lrc");
             System.out.println(tto.warnings);
+            for (Caption caption : tto.captions) {
+                System.out.println(caption.toString());
+            }
+            tto.toSRT("./src/main/shell/out/tmp.srt");
         } catch (IOException e) {
             e.printStackTrace();
             assertTrue(false);
