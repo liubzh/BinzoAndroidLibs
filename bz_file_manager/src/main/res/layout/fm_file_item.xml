@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content" >
+    android:layout_height="wrap_content"
+    android:background="@drawable/fm_bg_item_selector"
+    android:clickable="true"
+    android:focusable="true">
 
     <TextView
         android:id="@+id/fm_file_name"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:gravity="center_vertical"
+        android:textSize="18sp"
         android:text="1" />
 </FrameLayout>

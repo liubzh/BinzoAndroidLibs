@@ -22,9 +22,10 @@ import com.binzosoft.lib.util.PermissionUtil;
 import com.binzosoft.lib.util.ToastUtil;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.Stack;
 
-public class FileManagerActivity extends AppCompatActivity implements OnFileSelected {
+public class FileManagerActivity extends AppCompatActivity implements OnFileSelected, FileFilter {
 
     private final String TAG = "FileManagerActivity";
 
@@ -34,23 +35,17 @@ public class FileManagerActivity extends AppCompatActivity implements OnFileSele
     private FileListAdapter mAdapter;
     private Stack<PathStackItem> pathStack = new Stack<>();
     private String currentPath;
+    protected String rootDir = Environment.getExternalStorageDirectory().getPath();
 
-    private FileRestriction restriction;
+    @Override
+    public boolean accept(File pathname) {
+        return true; // 默认不做任何约束，可在子类中重写此方法进行文件列表约束
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate");
-
-        try {
-            restriction = getIntent().getExtras().getParcelable(FileRestriction.PARCELABLE_NAME);
-            if (restriction != null) {
-                currentPath = restriction.getRoot();
-                Log.i(TAG, "currentPath:" + currentPath);
-            }
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-        }
 
         PermissionUtil.requestPermissions(this);
         setContentView(R.layout.fm_activity_file_manager);
@@ -60,14 +55,8 @@ public class FileManagerActivity extends AppCompatActivity implements OnFileSele
         mRecyclerView.setLayoutManager(mLayoutManager);
         setItemDecoration(mRecyclerView);
 
-        if (TextUtils.isEmpty(currentPath)) {
-            currentPath = Environment.getExternalStorageDirectory().getPath();
-        }
-        Log.i(TAG, "currentPath:" + currentPath);
-        fileList = new File(currentPath).listFiles();
-        if (restriction != null) {
-            fileList = restriction.filter(currentPath);
-        }
+        currentPath = rootDir;
+        fileList = new File(currentPath).listFiles(this);
         mAdapter = new FileListAdapter();
         mRecyclerView.setAdapter(mAdapter);
 
@@ -93,6 +82,11 @@ public class FileManagerActivity extends AppCompatActivity implements OnFileSele
         PermissionUtil.onRequestPermissionsResult(this, requestCode, permissions, grantResults);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
     private void setOnScrollListener() {
         RecyclerView.OnScrollListener onScrollListener = new RecyclerView.OnScrollListener() {
             @Override
@@ -100,7 +94,7 @@ public class FileManagerActivity extends AppCompatActivity implements OnFileSele
                 super.onScrollStateChanged(recyclerView, newState);
             }
         };
-        mRecyclerView.setOnScrollListener(onScrollListener);
+        mRecyclerView.addOnScrollListener(onScrollListener);
     }
 
     private boolean setOnScrollChangeListener() {
@@ -117,7 +111,7 @@ public class FileManagerActivity extends AppCompatActivity implements OnFileSele
         return false;
     }
 
-    protected void pathForward(String path) {
+    protected void pathForward(final String path) {
         if (currentPath != null && currentPath.equals(path)) {
             return;
         }
@@ -137,11 +131,12 @@ public class FileManagerActivity extends AppCompatActivity implements OnFileSele
 
         pathStack.push(pathStackItem);
         Log.i(TAG, pathStack.toString());
-        fileList = file.listFiles();
-        if (restriction != null) {
-            fileList = restriction.filter(path);
-        }
-        mRecyclerView.setAdapter(new FileListAdapter());
+        fileList = file.listFiles(this);
+//        if (restriction != null) {
+//            fileList = restriction.filter(path);
+//        }
+        mAdapter = new FileListAdapter();
+        mRecyclerView.setAdapter(mAdapter);
         currentPath = path;
     }
 
@@ -156,12 +151,51 @@ public class FileManagerActivity extends AppCompatActivity implements OnFileSele
         if (!file.exists()) {
             return;
         }
-        fileList = file.listFiles();
-        if (restriction != null) {
-            fileList = restriction.filter(path);
-        }
-        mRecyclerView.setAdapter(new FileListAdapter());
-        mLayoutManager.scrollToPositionWithOffset(pathStackItem.getLastPosition(), pathStackItem.getLastOffset());
+        fileList = file.listFiles(this);
+        mAdapter = new FileListAdapter();
+        mRecyclerView.setAdapter(mAdapter);
+
+        // 确定条目并滚动到相应位置
+        final String focusDirName = new File(currentPath).getName();
+        final PathStackItem pathItem = pathStackItem;
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                mRecyclerView.removeOnScrollListener(this);
+                int position = -1;
+                Log.i(TAG, String.format("currentDirName:%s", focusDirName));
+                for (int i = 0; i < fileList.length; i++) {
+                    if (focusDirName.equals(fileList[i].getName())) {
+                        position = i;
+                        break;
+                    }
+                }
+                Log.i(TAG, String.format("lastPosition:%d, lastOffset:%d, position:%d",
+                        pathItem.getLastPosition(), pathItem.getLastOffset(), position));
+                View view = null;
+                if (position < 0) {
+                    int firstVisibleItemPosition = mLayoutManager.findFirstCompletelyVisibleItemPosition();
+                    if (firstVisibleItemPosition > 0) {
+                        view = mLayoutManager.findViewByPosition(firstVisibleItemPosition);
+                    }
+                } else {
+                    view = mLayoutManager.findViewByPosition(position);
+                }
+                if (view != null) {
+                    view.requestFocus();
+                } else {
+                    Log.i(TAG, "not found view to request focus.");
+                }
+            }
+        });
+        mLayoutManager.scrollToPositionWithOffset(pathStackItem.getLastPosition(),
+                pathStackItem.getLastOffset());
         currentPath = path;
     }
 
@@ -252,4 +286,87 @@ public class FileManagerActivity extends AppCompatActivity implements OnFileSele
         // 当选定一个文件，就会调用这个方法。
         // 可继承这个Activity，然后重写这个方法
     }
+
+    /*
+    class USBDiskManager extends BroadcastReceiver {
+        private static final String ACTION_USB_PERMISSION =
+                "com.binzosoft.lib.file_manager.USB_PERMISSION";
+        private Context context;
+        private PendingIntent permissionIntent;
+
+        public USBDiskManager(Context context) {
+            this.context = context;
+            this.permissionIntent = PendingIntent.getBroadcast(context, 0,
+                    new Intent(ACTION_USB_PERMISSION), 0);
+        }
+
+        private ArrayList<File> DISKS = new ArrayList<File>() {{
+            add(Environment.getExternalStorageDirectory());
+        }};
+
+        public ArrayList<File> getDisks() {
+            return DISKS;
+        }
+
+        public int getDiskCount() {
+            return DISKS.size();
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            Log.i(TAG, String.format("USBDiskManager received action:[%s]", action));
+
+            if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
+                UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+
+                HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+                Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+                while (deviceIterator.hasNext()) {
+                    UsbDevice device = deviceIterator.next();
+                    //your code
+                    if (device.getDeviceClass() == UsbConstants.USB_CLASS_MASS_STORAGE && !usbManager.hasPermission(device)) {
+                        usbManager.requestPermission(device, permissionIntent);
+                    }
+                }
+            } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+                // 插入USB设备
+                UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+                for (UsbDevice usbDevice : usbManager.getDeviceList().values()) {
+                    Log.i(TAG, String.format("deviceClass:%d, deviceName:%s",
+                            usbDevice.getDeviceClass(), usbDevice.getDeviceName()));
+                }
+            } else if (ACTION_USB_PERMISSION.equals(action)) {
+                synchronized (this) {
+                    UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+
+                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                        if (device != null) {
+                            //call method to set up device communication
+                            Log.i(TAG, "permission granted for device " + device);
+                        }
+                    } else {
+                        Log.d(TAG, "permission denied for device " + device);
+                    }
+                }
+            }
+        }
+
+        public void register() {
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+            filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+            filter.addAction(ACTION_USB_PERMISSION);
+            context.registerReceiver(this, filter);
+        }
+
+        public void unregister() {
+            try {
+                context.unregisterReceiver(this);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    */
 }

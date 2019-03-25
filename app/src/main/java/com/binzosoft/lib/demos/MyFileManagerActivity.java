@@ -2,6 +2,8 @@ package com.binzosoft.lib.demos;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 
 import com.binzosoft.lib.file_manager.FileManagerActivity;
@@ -14,6 +16,33 @@ import java.io.File;
 public class MyFileManagerActivity extends FileManagerActivity {
 
     private final String TAG = getClass().getSimpleName();
+
+    @Override
+    public boolean accept(File pathname) {
+        String name = pathname.getName();
+        if (name.startsWith(".")) {
+            return false; //不显示隐藏文件
+        }
+        if (pathname.isDirectory()) {
+            return true; //显示目录
+        } else if (name.endsWith(".mp4")) {
+            return true; //显示mp4视频文件
+        } else if (name.endsWith(".mp3")) {
+            return true; //显示mp3音频文件
+        }
+        return false;
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        //rootDir = Environment.getExternalStorageDirectory().getPath() + File.separator + "learn";
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 
     @Override
     public void onSelected(String path) {
