@@ -41,7 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class ExoPlayerActivity extends AppCompatActivity implements Button.OnClickListener {
+public class ExoPlayerVideoActivity extends AppCompatActivity implements Button.OnClickListener {
 
     private final String TAG = getClass().getSimpleName();
 
@@ -163,7 +163,7 @@ public class ExoPlayerActivity extends AppCompatActivity implements Button.OnCli
         }
 
         PermissionUtil.requestPermissions(this);
-        setContentView(R.layout.video_exoplayer_activity);
+        setContentView(R.layout.video_exoplayer_video_activity);
 
         subtitlesContainer = findViewById(R.id.video_subtitle_container);
         button1 = findViewById(R.id.video_button1);

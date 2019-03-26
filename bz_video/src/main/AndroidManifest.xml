@@ -3,7 +3,8 @@
 
     <application>
         <activity android:name=".VideoViewActivity" />
-        <activity android:name=".ExoPlayerActivity" />
+        <activity android:name=".ExoPlayerVideoActivity" />
+        <activity android:name=".ExoPlayerAudioActivity" />
     </application>
 
 </manifest>

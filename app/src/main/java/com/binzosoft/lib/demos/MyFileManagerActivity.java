@@ -3,12 +3,12 @@ package com.binzosoft.lib.demos;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 
 import com.binzosoft.lib.file_manager.FileManagerActivity;
-import com.binzosoft.lib.util.media.Metadata;
-import com.binzosoft.lib.video.ExoPlayerActivity;
+import com.binzosoft.lib.util.MimeTypeUtil;
+import com.binzosoft.lib.video.ExoPlayerAudioActivity;
+import com.binzosoft.lib.video.ExoPlayerVideoActivity;
 import com.binzosoft.lib.video.VideoViewActivity;
 
 import java.io.File;
@@ -26,9 +26,11 @@ public class MyFileManagerActivity extends FileManagerActivity {
         if (pathname.isDirectory()) {
             return true; //显示目录
         } else if (name.endsWith(".mp4")) {
-            return true; //显示mp4视频文件
-        } else if (name.endsWith(".mp3")) {
-            return true; //显示mp3音频文件
+            return true; //显示 .mp4 视频文件
+        } else if (name.endsWith(".mp3") || name.endsWith(".wav")) {
+            return true; //显示 .mp3 .wav 音频文件
+        } else if (name.endsWith(".txt")) {
+            return true;
         }
         return false;
     }
@@ -48,7 +50,11 @@ public class MyFileManagerActivity extends FileManagerActivity {
     public void onSelected(String path) {
         Log.i(TAG, "onSelected:" + path);
         //startVideoViewActivity(path);
-        startExoPlayerActivity(path);
+        if (MimeTypeUtil.isVideoFile(path)) {
+            startExoPlayerVideoActivity(path);
+        } else if (MimeTypeUtil.isAudioFile(path)) {
+            startExoPlayerAudioActivity(path);
+        }
     }
 
     private void startVideoViewActivity(String path) {
@@ -58,12 +64,22 @@ public class MyFileManagerActivity extends FileManagerActivity {
         startActivity(intent);
     }
 
-    private void startExoPlayerActivity(String path) {
-        Metadata metadata = Metadata.retrieve(path);
-        Log.i(TAG, "metadata:" + metadata);
+    private void startExoPlayerVideoActivity(String path) {
+//        Metadata metadata = Metadata.retrieve(path);
+//        Log.i(TAG, "metadata:" + metadata);
 
         Intent intent = new Intent();
-        intent.setClass(this, ExoPlayerActivity.class);
+        intent.setClass(this, ExoPlayerVideoActivity.class);
+        intent.setData(Uri.fromFile(new File(path)));
+        startActivity(intent);
+    }
+
+    private void startExoPlayerAudioActivity(String path) {
+//        Metadata metadata = Metadata.retrieve(path);
+//        Log.i(TAG, "metadata:" + metadata);
+
+        Intent intent = new Intent();
+        intent.setClass(this, ExoPlayerAudioActivity.class);
         intent.setData(Uri.fromFile(new File(path)));
         startActivity(intent);
     }
