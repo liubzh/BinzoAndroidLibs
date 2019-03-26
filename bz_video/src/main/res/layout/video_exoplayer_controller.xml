@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/video_button1"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:background="@null"
+        android:text="〈"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        android:textSize="56sp" />
+
+    <Button
+        android:id="@+id/video_button2"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true"
+        android:background="@null"
+        android:text="〉"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        android:textSize="56sp" />
+
+    <LinearLayout
+        android:id="@+id/video_subtitle_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toLeftOf="@id/video_button2"
+        android:layout_toRightOf="@id/video_button1"
+        android:background="#44000000"
+        android:orientation="vertical" />
+
+</RelativeLayout>

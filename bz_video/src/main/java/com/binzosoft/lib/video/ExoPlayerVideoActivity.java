@@ -1,6 +1,7 @@
 package com.binzosoft.lib.video;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ActionMode;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,6 +21,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.binzosoft.lib.util.PermissionUtil;
+import com.binzosoft.lib.util.UiUtil;
+import com.binzosoft.lib.util.media.Metadata;
 import com.binzosoft.lib.video.subtitle.SubtitleHandler;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -142,6 +146,26 @@ public class ExoPlayerVideoActivity extends AppCompatActivity implements Button.
         }
     };
 
+    private void setOrientation() {
+        if (videoFile == null) {
+            return;
+        }
+        Metadata metadata = Metadata.retrieve(videoFile.getPath());
+        Log.i(TAG, "metadata:" + metadata);
+        int width = Integer.valueOf(metadata.getVideoWidth());
+        int height = Integer.valueOf(metadata.getVideoHeight());
+        double quotient = 1.0 * width / height;
+        Log.i(TAG, "quotient:" + quotient);
+        if (!UiUtil.isTelevision(this)) {
+            // 如果不是电视设备，自动判断横竖屏
+            if (quotient > 1) {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            } else {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -161,6 +185,8 @@ public class ExoPlayerVideoActivity extends AppCompatActivity implements Button.
             Log.e(TAG, "invalid uri");
             finish();
         }
+
+        setOrientation();
 
         PermissionUtil.requestPermissions(this);
         setContentView(R.layout.video_exoplayer_video_activity);
@@ -272,7 +298,7 @@ public class ExoPlayerVideoActivity extends AppCompatActivity implements Button.
         subtitleHandler.bindExoPlayer(player);
         for (String srtFileName : srtFiles) {
             String srtPath = dir + File.separator + srtFileName;
-                    Log.i(TAG, "srtPath:" + srtPath);
+            Log.i(TAG, "srtPath:" + srtPath);
             View layout = getLayoutInflater().inflate(R.layout.video_subtitle_text_layout, subtitlesContainer);
             //subtitlesContainer.addView(layout);
             TextView subtitleTextView = layout.findViewById(R.id.video_subtitle_text);
@@ -302,11 +328,20 @@ public class ExoPlayerVideoActivity extends AppCompatActivity implements Button.
             callback2 = new ActionMode.Callback2() {
                 @Override
                 public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
-                    /*
-                    MenuInflater menuInflater = actionMode.getMenuInflater();
-                    menuInflater.inflate(R.menu.vd_selection_action_translate, menu);
-                    return true;//返回false则不会显示弹窗
-                    */
+                    //MenuInflater menuInflater = actionMode.getMenuInflater();
+                    //return true;//返回false则不会显示弹窗
+                    for (int i = 0; i < menu.size(); i++) {
+                        MenuItem item = menu.getItem(i);
+                        String title = item.getTitle().toString();
+                        Log.i(TAG, title);
+                        if ("Copy".equalsIgnoreCase(title)
+                                || "Share".equalsIgnoreCase(title)
+                                || "复制".equalsIgnoreCase(title)
+                                || "分享".equalsIgnoreCase(title)) {
+                            item.setVisible(false);
+                        }
+                    }
+                    //menuInflater.inflate(R.menu.vd_selection_action_translate, menu);
                     return true;
                 }
 
@@ -316,6 +351,13 @@ public class ExoPlayerVideoActivity extends AppCompatActivity implements Button.
                     MenuInflater menuInflater = actionMode.getMenuInflater();
                     menu.clear(); // 清除系统默认复制、粘贴选项后，只显示自定义菜单选项
                     menuInflater.inflate(R.menu.vd_selection_action_translate, menu);
+                    //MenuInflater menuInflater = actionMode.getMenuInflater();
+                    //menu.clear(); // 清除系统默认复制、粘贴选项后，只显示自定义菜单选项
+//                    for (int i = 0; i < menu.size(); i++) {
+//                        Log.i(TAG, menu.getItem(i).getTitle().toString());
+//                        menu.removeItem(i);
+//                    }
+//                    menuInflater.inflate(R.menu.vd_selection_action_translate, menu);
                     return true;
                 }
 
@@ -395,5 +437,33 @@ public class ExoPlayerVideoActivity extends AppCompatActivity implements Button.
                 subtitleHandler.next();
             }
         }
+    }
+
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+            Log.i(TAG, "KEYCODE_DPAD_LEFT");
+            if (subtitleHandler != null) {
+                subtitleHandler.previous();
+            }
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+            Log.i(TAG, "KEYCODE_DPAD_RIGHT");
+            if (subtitleHandler != null) {
+                subtitleHandler.next();
+            }
+//        } else if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+//            Log.i(TAG, "KEYCODE_DPAD_UP");
+//        } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+//            Log.i(TAG, "KEYCODE_DPAD_DOWN");
+        } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+            Log.i(TAG, "KEYCODE_DPAD_CENTER");
+            if (player.getPlayWhenReady()) {
+                player.setPlayWhenReady(false);
+            } else {
+                player.setPlayWhenReady(true);
+            }
+        }
+        return super.onKeyUp(keyCode, event);
     }
 }

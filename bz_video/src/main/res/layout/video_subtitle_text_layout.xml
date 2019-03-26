@@ -14,19 +14,18 @@
         android:layout_height="wrap_content"
         android:background="@null"
         android:gravity="center"
-        android:minHeight="100dp"
-        android:padding="22dp"
         android:text="Subtitle"
+        android:textColor="@android:color/white"
         android:textIsSelectable="true"
-        android:textSize="20sp"
+        android:textSize="26sp"
         app:layout_constraintTop_toBottomOf="@id/video_playerView" />
 
-    <View
+    <!--<View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@color/colorPrimary"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        app:layout_constraintBottom_toBottomOf="@id/video_subtitle_text" />
+        android:background="@color/video_colorPrimary"
+        app:layout_constraintBottom_toBottomOf="@id/video_subtitle_text" />-->
 
 </android.support.constraint.ConstraintLayout>

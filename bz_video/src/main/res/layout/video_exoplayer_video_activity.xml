@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (C) 2016 The Android Open Source Project
+<?xml version="1.0" encoding="UTF-8"?><!-- Copyright (C) 2016 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -25,27 +24,45 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <Button
+        android:id="@+id/video_button1"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:background="@null"
+        android:focusable="false"
+        android:text="〈"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        android:textSize="56sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/video_button2"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:background="@null"
+        android:focusable="false"
+        android:text="〉"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        android:textSize="56sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <LinearLayout
         android:id="@+id/video_subtitle_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#AA000000"
+        android:gravity="center"
         android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@id/video_playerView" />
-
-    <Button
-        android:id="@+id/video_button1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Previous"
-        android:textAllCaps="false"
-        app:layout_constraintTop_toBottomOf="@id/video_subtitle_container" />
-
-    <Button
-        android:id="@+id/video_button2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Next"
-        android:textAllCaps="false"
-        app:layout_constraintTop_toBottomOf="@id/video_button1" />
+        android:padding="6dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/video_button1"
+        app:layout_constraintRight_toLeftOf="@id/video_button2" />
 
 </android.support.constraint.ConstraintLayout>
