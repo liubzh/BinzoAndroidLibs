@@ -14,6 +14,7 @@ public class FormatLRC implements SubtitleInterface {
 
     private static final String PATTERN_TIME = "\\[[0-9]{2,3}:[0-9]{2}.[0-9]{2}\\].*";
     private static final String DEFAULT_CHARSET = "UTF-8";
+    private static final boolean DEBUG = true;
 
     @Override
     public TimedTextObject parse(String filePath) throws IOException {
@@ -42,7 +43,7 @@ public class FormatLRC implements SubtitleInterface {
                 line = line.trim();
                 if (Pattern.matches(PATTERN_TIME, line)) {
                     String time = line.substring(1, 9);
-                    //System.out.println(time);
+                    if (DEBUG) System.out.println("\"" + time + "\" is in []");
                     if (line.length() > 10) {
                         // [00:04.37]词：琼瑶
                         // 字符个数大于10，说明有内容
@@ -53,6 +54,7 @@ public class FormatLRC implements SubtitleInterface {
                     caption = new Caption();
                     caption.setContent(text);
                     long startTime = TimeUtil.valueOf(TimeUtil.FORMAT_MM_SS_MM, time);
+                    if (DEBUG) System.out.println("startTime: " + startTime);
                     long endTime = startTime + 1; //暂时设定为假的结束时间，解析完成之后，进行真实结束时间的设定
                     caption.setStart(startTime);
                     caption.setEnd(endTime);

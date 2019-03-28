@@ -38,6 +38,7 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.8.4'
 
     implementation project(':bz_util')
+    implementation project(':bz_caption')
     //implementation project(':bz_subtitle')
     //implementation project(':bz_encrypt')
 }

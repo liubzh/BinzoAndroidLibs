@@ -31,8 +31,8 @@ FORMAT=
 while [[ $# -gt 0 ]];do
     case "$1" in
         -h|--help|\?)
-            echo "run.sh build  编译Java"
-            echo "run.sh [args] 运行Java"
+            echo "run.sh [-b|--build]  编译Java文件"
+            echo "run.sh [-i|--input ./xxx.lrc] [-f|--format srt] lrc转srt"
             exit 0
             ;;
         -b|--build)

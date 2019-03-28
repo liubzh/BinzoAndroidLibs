@@ -29,14 +29,14 @@ public class TimeUtil {
             int m, s, ms;
             int colonIndex = formattedTime.indexOf(":");
             int dotIndex = formattedTime.lastIndexOf(".");
-            m = Integer.parseInt(formattedTime.substring(0, colonIndex - 1));
+            m = Integer.parseInt(formattedTime.substring(0, colonIndex));
             s = Integer.parseInt(formattedTime.substring(colonIndex + 1, dotIndex));
             String msecond = formattedTime.substring(dotIndex + 1);
             if (msecond.length() == 2) {
                 msecond = msecond + "0";
             }
             ms = Integer.parseInt(msecond);
-            //System.out.println(String.format("%d:%d.%d", m, s, ms));
+            System.out.println(String.format("m=%d:s=%d.ms=%d", m, s, ms));
             return ms + s * 1000 + m * 60000;
         }
         return -1;

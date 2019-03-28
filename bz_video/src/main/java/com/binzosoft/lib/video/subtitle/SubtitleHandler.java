@@ -174,9 +174,9 @@ public class SubtitleHandler extends Handler {
 
     public void targetSubtitle(long position) {
         for (SubtitleLoader loader : subtitleLoaders) {
-            if (loader.isMainSubtitle()) {
+            //if (loader.isMainSubtitle()) {
                 loader.targetSubtitle(position);
-            }
+            //}
         }
     }
 

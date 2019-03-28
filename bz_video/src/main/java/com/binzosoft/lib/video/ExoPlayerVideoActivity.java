@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -16,6 +17,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -210,12 +212,12 @@ public class ExoPlayerVideoActivity extends AppCompatActivity implements Button.
         player.setRepeatMode(Player.REPEAT_MODE_ONE);
 
         String title = videoFile.getName();
-        if (title.contains(".k.mp4")) {
-            title = title.substring(0, title.lastIndexOf(".k.mp4"));
-        }
-        if (title.contains(" - ")) {
-            title = title.substring(title.indexOf(" - ") + 3);
-        }
+//        if (title.contains(".k.mp4")) {
+//            title = title.substring(0, title.lastIndexOf(".k.mp4"));
+//        }
+//        if (title.contains(" - ")) {
+//            title = title.substring(title.indexOf(" - ") + 3);
+//        }
         setTitle(title);
 
         /* 官方示例的: DefaultDataSourceFactory */
@@ -272,6 +274,8 @@ public class ExoPlayerVideoActivity extends AppCompatActivity implements Button.
 
         // 自动开始播放
         player.setPlayWhenReady(true);
+
+        hideStatusNavigationBar();
     }
 
     private void searchSrt(File videoFile) throws IOException {
@@ -465,5 +469,19 @@ public class ExoPlayerVideoActivity extends AppCompatActivity implements Button.
             }
         }
         return super.onKeyUp(keyCode, event);
+    }
+
+    private void hideStatusNavigationBar() {
+        if (Build.VERSION.SDK_INT < 16) {
+            this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        } else {
+            int uiFlags = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN //hide statusBar
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION; //hide navigationBar
+            getWindow().getDecorView().setSystemUiVisibility(uiFlags);
+        }
     }
 }
